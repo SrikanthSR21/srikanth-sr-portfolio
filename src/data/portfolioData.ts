@@ -53,8 +53,8 @@ export const FONT_PAIRS: FontPairOption[] = [
 ];
 
 export const INITIAL_PORTFOLIO_INFO: PortfolioInfo = {
-  personaName: 'MORGANDEMAXWEL',
-  realName: 'SRIKANTH SR',
+  personaName: 'Srikanth SR',
+  realName: 'Srikanth SR',
   roleTitle: 'CREATIVE DEVELOPER / ADS STRATEGIST',
   location: 'Kulasekharam, Kanyakumari, India (Open to UAE & Global Relocation)',
   email: 'srsrikanth216@gmail.com',

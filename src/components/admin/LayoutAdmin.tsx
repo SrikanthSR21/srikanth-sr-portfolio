@@ -70,7 +70,7 @@ export const LayoutAdmin: React.FC<Props> = ({ onNavigate }) => {
 
       <p className="text-xs text-zinc-500 max-w-2xl">
         Drag a row (or use the arrows) to change the order of the public page. Hidden sections are removed from the page and its navigation, but their content is kept.
-        Open a section to rename its headings.
+        Open a section to rename its headings (or use Section Headings for all of them at once).
       </p>
 
       {/* Order preview */}
@@ -138,6 +138,7 @@ export const LayoutAdmin: React.FC<Props> = ({ onNavigate }) => {
                       Edit hero heading & sub-text <ExternalLink className="w-3 h-3" />
                     </button>
                   )}
+                  {s.id === 'skills' && <button type="button" onClick={() => onNavigate('skills')} className="self-start text-xs text-white underline underline-offset-4 cursor-pointer">Manage skills →</button>}
                   {s.id === 'projects' && <button type="button" onClick={() => onNavigate('Projects')} className="self-start text-xs text-white underline underline-offset-4 cursor-pointer">Manage My Own Projects →</button>}
                   {s.id === 'advertising' && <button type="button" onClick={() => onNavigate('Advertising')} className="self-start text-xs text-white underline underline-offset-4 cursor-pointer">Manage Advertising work →</button>}
                   {s.id === 'contact' && <button type="button" onClick={() => onNavigate('Contact form')} className="self-start text-xs text-white underline underline-offset-4 cursor-pointer">Edit enquiry-type suggestions →</button>}

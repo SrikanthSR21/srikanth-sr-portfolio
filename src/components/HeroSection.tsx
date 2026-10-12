@@ -30,7 +30,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const [activePersona, setActivePersona] = useState<'persona' | 'real'>('persona');
-  const displayName = activePersona === 'persona' ? headline : realName;
+  // The toggle only makes sense when the two names differ (they are the same by default).
+  const namesDiffer = headline.trim().toLowerCase() !== realName.trim().toLowerCase();
+  const displayName = namesDiffer && activePersona === 'real' ? realName : headline;
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
@@ -140,14 +142,18 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         {/* Persona toggle */}
         <div className="mb-6 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-zinc-400 font-mono-code">
           <span>{t('hero.eyebrow')}</span>
-          <span aria-hidden="true">/</span>
-          <button
-            onClick={() => setActivePersona(activePersona === 'persona' ? 'real' : 'persona')}
-            className="hover:text-white underline underline-offset-4 transition-colors cursor-pointer"
-            title="Toggle between Creative Persona & Legal Name"
-          >
-            {activePersona === 'persona' ? t('hero.viewAsReal') : t('hero.viewAsPersona')}
-          </button>
+          {namesDiffer && (
+            <>
+              <span aria-hidden="true">/</span>
+              <button
+                onClick={() => setActivePersona(activePersona === 'persona' ? 'real' : 'persona')}
+                className="hover:text-white underline underline-offset-4 transition-colors cursor-pointer"
+                title="Toggle between Creative Persona & Legal Name"
+              >
+                {activePersona === 'persona' ? t('hero.viewAsReal') : t('hero.viewAsPersona')}
+              </button>
+            </>
+          )}
         </div>
 
         {/* Big powerful white text */}

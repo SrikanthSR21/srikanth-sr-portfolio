@@ -17,7 +17,10 @@ export interface SiteImages {
   profile: string;
   /** Set by the uploader when the portrait has a transparent background */
   profileTransparent?: boolean;
-  /** auto = cut-out layout for transparent images, framed arch otherwise */
+  /** Natural size of the portrait (set on upload / library pick) so the page reserves the right space: no layout shift. */
+  profileWidth?: number;
+  profileHeight?: number;
+  /** auto = no shadow for transparent images, soft shadow otherwise. 'framed' = always soft shadow, 'cutout' = never. Always rectangular, never cropped. */
   profileDisplay?: 'auto' | 'framed' | 'cutout';
 }
 
@@ -29,6 +32,7 @@ export { DEFAULT_LAYOUT };
 export const DEFAULT_NAV: NavItem[] = [
   { id: 'n1', label: 'Home',        href: '#home',        kind: 'link',   visible: true },
   { id: 'n2', label: 'About',       href: '#about',       kind: 'link',   visible: true },
+  { id: 'n-skills', label: 'Skills',  href: '#skills',      kind: 'link',   visible: true },
   { id: 'n3', label: 'Projects',    href: '#projects',    kind: 'link',   visible: true },
   { id: 'n4', label: 'Advertising', href: '#advertising', kind: 'link',   visible: true },
   { id: 'n5', label: 'Experience',  href: '#experience',  kind: 'link',   visible: true },
@@ -36,6 +40,19 @@ export const DEFAULT_NAV: NavItem[] = [
   { id: 'n7', label: 'Contact',     href: '#contact',     kind: 'link',   visible: true },
   { id: 'n8', label: 'Resume (Download)', href: '', kind: 'resume', visible: true },
 ];
+
+/** Saved navigation from before V4 has no Skills link: add it right after About (read-time only; the database is not touched).
+ *  To remove it, use the Visible switch in Admin → Navbar Links. */
+export function normalizeNav(raw: unknown): NavItem[] {
+  if (!Array.isArray(raw)) return DEFAULT_NAV;
+  const nav = raw as NavItem[];
+  if (nav.some((n) => n?.href === '#skills' || n?.id === 'n-skills')) return nav;
+  const at = nav.findIndex((n) => n?.href === '#about');
+  const item = DEFAULT_NAV.find((n) => n.id === 'n-skills')!;
+  const out = [...nav];
+  out.splice(at >= 0 ? at + 1 : Math.min(2, out.length), 0, { ...item });
+  return out;
+}
 
 export const DEFAULT_HERO_METRICS: HeroMetric[] = [
   { id: 'm1', value: '5,000+',   label: 'Giveaway Viral Followers' },
@@ -58,13 +75,13 @@ export const DEFAULT_IMAGES: SiteImages = { profile: '' }; // '' = use the bundl
 
 // Flat key → text map. Add a key here + use t('key') in a component and it appears in the admin automatically.
 export const DEFAULT_TEXTS: Record<string, string> = {
-  'seo.title': 'Morgan Maxwell | Creative Developer & Ads Strategist Portfolio',
+  'seo.title': 'Srikanth SR | Creative Developer & Ads Strategist Portfolio',
   'seo.description': 'Portfolio featuring live project cards, advertising case studies, branding and direct WhatsApp routing.',
 
 
   'hero.eyebrow': 'PORTFOLIO 2026',
-  'hero.viewAsReal': 'View as: Srikanth SR',
-  'hero.viewAsPersona': 'View as: Morgan Maxwell',
+  'hero.viewAsReal': 'View as: Legal name',
+  'hero.viewAsPersona': 'View as: Creative name',
   'hero.ctaPrimary': 'EXPLORE MY WORK',
   'hero.ctaSecondary': 'DOWNLOAD FULL CV',
   'hero.scroll': 'Scroll',
@@ -77,6 +94,10 @@ export const DEFAULT_TEXTS: Record<string, string> = {
   'about.certLabel': 'Specialist Certification',
   'about.relocationTag': 'Open to UAE & Global Relocation',
   'about.cvButton': 'DOWNLOAD FULL CV',
+
+  'skills.eyebrow': '// SKILLS & TOOLKIT',
+  'skills.title': 'SKILLS',
+  'skills.subtitle': '',
 
   'projects.eyebrow': '02 // WEBSITES & PRODUCTS I HAVE BUILT',
   'projects.title': 'MY OWN PROJECTS',

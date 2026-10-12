@@ -79,7 +79,7 @@ export const AppearanceAdmin: React.FC = () => {
         <div className="grid sm:grid-cols-2 gap-3">
           {FONT_PAIRS.map((fp) => (
             <button key={fp.id} className={card(theme.fontPairId === fp.id)} onClick={() => update({ fontPairId: fp.id })}>
-              <div className={`text-2xl leading-none mb-2 ${fp.headlineClass}`}>Morgan</div>
+              <div className={`text-2xl leading-none mb-2 ${fp.headlineClass}`}>{settings.info.personaName}</div>
               <div className={`text-xs ${fp.bodyClass}`}>Creative developer / ads strategist</div>
               <div className="text-[10px] opacity-60 mt-2">{fp.name}</div>
             </button>

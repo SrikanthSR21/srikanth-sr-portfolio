@@ -39,7 +39,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentFontPair, onOpenResume, p
       const t = e.target as Node;
       if (!panelRef.current?.contains(t) && !buttonRef.current?.contains(t)) close();
     };
-    const mql = matchMedia('(min-width: 1024px)');
+    const mql = matchMedia('(min-width: 1280px)');
     const onMq = () => { if (mql.matches) close(); };
     document.addEventListener('keydown', onKey);
     document.addEventListener('pointerdown', onDown);
@@ -54,6 +54,17 @@ export const Navbar: React.FC<NavbarProps> = ({ currentFontPair, onOpenResume, p
 
   const linkProps = (href: string) => (/^https?:/.test(href) ? { target: '_blank', rel: 'noopener noreferrer' } : {});
 
+  // In-page links scroll smoothly (instant when the visitor prefers reduced motion). If the target does not exist the browser's default applies.
+  const onAnchor = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (!href.startsWith('#') || href.length < 2) return;
+    const target = document.getElementById(href.slice(1));
+    if (!target) return;
+    e.preventDefault();
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    history.replaceState(null, '', href);
+  };
+
   return (
     <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-black/80 border-b border-white/10 transition-colors"
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
@@ -67,7 +78,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentFontPair, onOpenResume, p
         </a>
 
         {/* Desktop navigation (unchanged: managed from /admin) */}
-        <nav aria-label="Primary" className="hidden lg:flex items-center gap-7 text-xs tracking-wider uppercase text-zinc-400 font-medium">
+        <nav aria-label="Primary" className="hidden xl:flex items-center gap-6 2xl:gap-7 text-xs tracking-wider uppercase text-zinc-400 font-medium">
           {items.map((n) =>
             n.kind === 'resume' ? (
               <button key={n.id} onClick={onOpenResume}
@@ -75,7 +86,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentFontPair, onOpenResume, p
                 {n.label}
               </button>
             ) : (
-              <a key={n.id} href={n.href} {...linkProps(n.href)} className="hover:text-white transition-colors whitespace-nowrap shrink-0">
+              <a key={n.id} href={n.href} {...linkProps(n.href)} onClick={(e) => onAnchor(e, n.href)} className="hover:text-white transition-colors whitespace-nowrap shrink-0">
                 {n.label}
               </a>
             )
@@ -84,7 +95,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentFontPair, onOpenResume, p
         </nav>
 
         {/* Mobile: theme toggle + hamburger */}
-        <div className="flex lg:hidden items-center gap-2 shrink-0">
+        <div className="flex xl:hidden items-center gap-2 shrink-0">
           <ThemeToggle />
           <button
             ref={buttonRef}
@@ -107,7 +118,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentFontPair, onOpenResume, p
           ref={panelRef}
           role="region"
           aria-label="Mobile navigation"
-          className="lg:hidden absolute top-full inset-x-0 bg-black border-b border-white/15 shadow-2xl overflow-y-auto motion-safe:animate-[fadeIn_.18s_ease-out]"
+          className="xl:hidden absolute top-full inset-x-0 bg-black border-b border-white/15 shadow-2xl overflow-y-auto motion-safe:animate-[fadeIn_.18s_ease-out]"
           style={{ maxHeight: 'calc(100dvh - 4.5rem - env(safe-area-inset-top, 0px))' }}
         >
           <nav aria-label="Primary mobile" className="max-w-7xl mx-auto px-5 sm:px-6 py-3 flex flex-col">
@@ -119,7 +130,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentFontPair, onOpenResume, p
                   {n.label}
                 </button>
               ) : (
-                <a key={n.id} href={n.href} {...linkProps(n.href)} className={cls} onClick={() => close()}>
+                <a key={n.id} href={n.href} {...linkProps(n.href)} className={cls} onClick={(e) => { onAnchor(e, n.href); close(); }}>
                   {n.label}
                 </a>
               );

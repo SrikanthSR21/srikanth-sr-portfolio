@@ -29,12 +29,15 @@ const GROUPS: { title: string; fields: { key: TextKey; label: string; hint?: str
   ] },
 ];
 const ALL_KEYS = GROUPS.flatMap((g) => g.fields.map((f) => f.key));
+const VIEW_GROUPS: Record<'profile' | 'contact', string[]> = { profile: ['Hero'], contact: ['Contact details', 'Social links'] };
 
-export const ProfileAdmin: React.FC = () => {
+/** view 'profile' = hero name, bio, certifications, education, CV. view 'contact' = contact details + social links. */
+export const ProfileAdmin: React.FC<{ view?: 'profile' | 'contact' }> = ({ view = 'profile' }) => {
   const { settings, saveSetting } = useContent();
   const info = settings.info;
   const source = useMemo(() => ({
     ...(Object.fromEntries(ALL_KEYS.map((k) => [k, (info[k] as string) ?? ''])) as Record<TextKey, string>),
+    resumeUrl: info.resumeUrl ?? '',
     aboutBio: info.aboutBio,
     certifications: info.certifications.join('\n'),
   }), [info]);
@@ -47,10 +50,11 @@ export const ProfileAdmin: React.FC = () => {
   // Always merge onto the latest saved info so skills/education edits are never overwritten.
   const mergeSave = (patch: Partial<PortfolioInfo>) => saveSetting('info', { ...settings.info, ...patch });
 
+  const viewKeys = GROUPS.filter((g) => VIEW_GROUPS[view].includes(g.title)).flatMap((g) => g.fields.map((f) => f.key));
+  // Only this page's fields are written, merged onto the latest saved info, so the other page's data is never touched.
   const saveMain = () => run(() => mergeSave({
-    ...(Object.fromEntries(ALL_KEYS.map((k) => [k, draft[k].trim()])) as Partial<PortfolioInfo>),
-    aboutBio: draft.aboutBio,
-    certifications: draft.certifications.split('\n').map((s) => s.trim()).filter(Boolean),
+    ...(Object.fromEntries(viewKeys.map((k) => [k, draft[k].trim()])) as Partial<PortfolioInfo>),
+    ...(view === 'profile' ? { aboutBio: draft.aboutBio, certifications: draft.certifications.split('\n').map((s) => s.trim()).filter(Boolean), resumeUrl: draft.resumeUrl.trim() } : {}),
   }));
 
   const uploadCv = async (f?: File) => {
@@ -65,9 +69,9 @@ export const ProfileAdmin: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <SaveBar title="Hero, contact & social" dirty={dirty} state={state} onSave={saveMain} onDiscard={discard} />
+      <SaveBar title={view === 'profile' ? 'Profile & About' : 'Contact & social links'} dirty={dirty} state={state} onSave={saveMain} onDiscard={discard} />
 
-      {GROUPS.map((g) => (
+      {GROUPS.filter((g) => VIEW_GROUPS[view].includes(g.title)).map((g) => (
         <fieldset key={g.title} className="p-4 rounded-xl border border-white/10 bg-zinc-950/50 space-y-4">
           <legend className="px-2 text-[11px] font-bold uppercase tracking-widest text-zinc-300">{g.title}</legend>
           <div className="grid md:grid-cols-2 gap-4">
@@ -82,6 +86,8 @@ export const ProfileAdmin: React.FC = () => {
         </fieldset>
       ))}
 
+      {view === 'profile' && (
+        <>
       <fieldset className="p-4 rounded-xl border border-white/10 bg-zinc-950/50 space-y-4">
         <legend className="px-2 text-[11px] font-bold uppercase tracking-widest text-zinc-300">About</legend>
         <div className="grid gap-1.5">
@@ -108,13 +114,7 @@ export const ProfileAdmin: React.FC = () => {
         {cvMsg && <div role="status" className="text-xs text-zinc-300">{cvMsg}</div>}
       </fieldset>
 
-      <RecordsEditor<{ id: string; category: string; items: string[] }>
-        title="Skill groups"
-        items={info.skills.map((s, i) => ({ id: `s${i}`, ...s }))}
-        fields={[{ key: 'category', label: 'Category', type: 'text' }, { key: 'items', label: 'Skills (one per line)', type: 'lines' }]}
-        titleKey="category" emptyText="No skill groups yet."
-        blank={() => ({ id: uid('s'), category: 'New category', items: [] })}
-        onSave={(rows) => mergeSave({ skills: rows.map(({ id, ...r }) => r) })} />
+      <p className="text-xs text-zinc-500">Skills now have their own page: Admin → Skills.</p>
 
       <RecordsEditor<{ id: string; degree: string; institution: string; year: string }>
         title="Education"
@@ -123,6 +123,8 @@ export const ProfileAdmin: React.FC = () => {
         titleKey="degree" emptyText="No education entries yet."
         blank={() => ({ id: uid('e'), degree: '', institution: '', year: '' })}
         onSave={(rows) => mergeSave({ education: rows.map(({ id, ...r }) => r) })} />
+        </>
+      )}
     </div>
   );
 };

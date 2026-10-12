@@ -13,6 +13,8 @@
     --fg-rgb: 255 255 255;
     --scroll-thumb: #27272a;
     --scroll-thumb-hover: #52525b;
+    /* Card corner radius: editable in Admin → Typography & Highlights */
+    --radius-card: 20px;
   }
 
   /*
@@ -185,9 +187,65 @@ html.theme-switching *::after {
   animation: ripple-circle 4s ease-out infinite;
 }
 
+/* ------------------------------------------------------------------------------------------
+   Typography & text highlights (Admin → Typography & Highlights)
+   Everything is opt-in through data-attributes on <html> (or on the admin preview wrapper .typo-scope),
+   so with the default settings none of these rules match and the original design is untouched.
+   ------------------------------------------------------------------------------------------ */
+:is(:root, .typo-scope)[data-t-font] .sec-heading { font-family: var(--t-font); }
+:is(:root, .typo-scope)[data-t-weight] .sec-heading { font-weight: var(--t-weight); }
+:is(:root, .typo-scope)[data-t-case] .sec-heading { text-transform: var(--t-case); }
+:is(:root, .typo-scope)[data-t-size='sm'] .sec-heading { font-size: clamp(1.5rem, 2.4vw + 0.9rem, 2.25rem); line-height: 1.15; }
+:is(:root, .typo-scope)[data-t-size='lg'] .sec-heading { font-size: clamp(2.25rem, 4.5vw + 1rem, 4rem); line-height: 1.05; }
+:is(:root, .typo-scope)[data-t-size='xl'] .sec-heading { font-size: clamp(2.5rem, 6vw + 1rem, 5.25rem); line-height: 1; }
+
+.sec-heading[data-hc='accent'] { color: var(--t-accent); }
+.sec-heading[data-hc='gradient'] {
+  background-image: linear-gradient(var(--t-grad-angle, 90deg), var(--t-grad-from, #7c9cff), var(--t-grad-to, #c084fc));
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent; -webkit-text-fill-color: transparent;
+  width: fit-content; max-width: 100%;
+}
+
+:is(:root, .typo-scope)[data-t-ul] .sec-heading[data-hu='on']::after {
+  content: ''; display: block; height: 3px; width: var(--t-ul-w, 3.5rem); max-width: 100%; margin-top: 0.7rem; border-radius: 9999px;
+  -webkit-text-fill-color: initial;
+}
+:is(:root, .typo-scope)[data-t-ul='solid'] .sec-heading[data-hu='on']::after { background: var(--t-accent); }
+:is(:root, .typo-scope)[data-t-ul='gradient'] .sec-heading[data-hu='on']::after { background: linear-gradient(90deg, var(--t-grad-from), var(--t-grad-to)); }
+:is(:root, .typo-scope)[data-t-ul='animated'] .sec-heading[data-hu='on']::after {
+  background: linear-gradient(90deg, var(--t-grad-from), var(--t-grad-to), var(--t-grad-from)); background-size: 200% 100%;
+  animation: underline-flow 3.5s linear infinite;
+}
+@keyframes underline-flow { from { background-position: 0% 0; } to { background-position: 200% 0; } }
+
+/* Highlighted words: written as ==word== in any heading/subtitle. Plain text unless the section has highlights on. */
+mark.hl { background: none; color: inherit; }
+:is(:root, .typo-scope)[data-t-hl='accent'] .sec-head[data-hl='on'] mark.hl { color: var(--t-accent); -webkit-text-fill-color: var(--t-accent); }
+:is(:root, .typo-scope)[data-t-hl='gradient'] .sec-head[data-hl='on'] mark.hl {
+  background-image: linear-gradient(90deg, var(--t-grad-from), var(--t-grad-to)); -webkit-background-clip: text; background-clip: text;
+  color: transparent; -webkit-text-fill-color: transparent;
+}
+:is(:root, .typo-scope)[data-t-hl='background'] .sec-head[data-hl='on'] mark.hl {
+  background-color: color-mix(in srgb, var(--t-accent) 24%, transparent); color: inherit; -webkit-text-fill-color: currentColor;
+  padding: 0 0.18em; border-radius: 0.25em; -webkit-box-decoration-break: clone; box-decoration-break: clone;
+}
+
+/* Smaller "card" headings (project / campaign / skill-category titles) */
+:is(:root, .typo-scope)[data-c-font] .card-heading { font-family: var(--c-font); }
+:is(:root, .typo-scope)[data-c-weight] .card-heading { font-weight: var(--c-weight); }
+:is(:root, .typo-scope)[data-c-size='sm'] .card-heading { font-size: 1rem; line-height: 1.3; }
+:is(:root, .typo-scope)[data-c-size='lg'] .card-heading { font-size: clamp(1.4rem, 1.2vw + 1rem, 1.9rem); line-height: 1.15; }
+:is(:root, .typo-scope)[data-c-color='accent'] .card-heading { color: var(--t-accent); }
+
+/* Skill progress bars grow once when scrolled into view */
+.skill-bar { transition: width 0.9s cubic-bezier(0.22, 1, 0.36, 1); }
+
 /* Respect reduced motion: stop decorative loops and smooth scrolling */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+  .skill-bar { transition: none; }
+  :is(:root, .typo-scope)[data-t-ul='animated'] .sec-heading[data-hu='on']::after { animation: none; }
   .animate-marquee, .animate-pulse-glow, .animate-ripple { animation: none !important; }
   .animate-bounce, .animate-ping, .animate-pulse { animation: none !important; }
   *, *::before, *::after { transition-duration: 0.01ms !important; }

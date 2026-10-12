@@ -9,7 +9,7 @@ const AdminPage = lazy(() => import('./pages/AdminPage'));
 const isAdminRoute = window.location.pathname.replace(/\/+$/, '') === '/admin';
 
 createRoot(document.getElementById('root')!).render(
-  <ContentProvider>
+  <ContentProvider useCache={!isAdminRoute}>
     {isAdminRoute ? (
       <Suspense fallback={null}>
         <AdminPage />

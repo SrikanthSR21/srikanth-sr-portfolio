@@ -1,5 +1,7 @@
 import React from 'react';
 import { PortfolioInfo, ExperienceItem } from '../types';
+import { useContent } from '../context/ContentContext';
+import { skillsToLegacy } from '../lib/skills';
 import { X, Printer, Download, Mail, Phone, MapPin, Linkedin, Globe, CheckCircle } from 'lucide-react';
 
 interface ResumeModalProps {
@@ -15,7 +17,10 @@ export const ResumeModal: React.FC<ResumeModalProps> = ({
   info,
   workExperience,
 }) => {
+  const { settings } = useContent();
   if (!isOpen) return null;
+  // Same skills as the Skills section (Admin → Skills), so the printable CV never drifts out of date.
+  const skillGroups = skillsToLegacy(settings.skills);
 
   const handlePrint = () => {
     window.print();
@@ -103,7 +108,7 @@ export const ResumeModal: React.FC<ResumeModalProps> = ({
               CORE SKILLS
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-zinc-800">
-              {info.skills.map((grp, i) => (
+              {skillGroups.map((grp, i) => (
                 <div key={i}>
                   <strong className="text-black font-semibold">{grp.category}:</strong>{' '}
                   <span>{grp.items.join(', ')}</span>

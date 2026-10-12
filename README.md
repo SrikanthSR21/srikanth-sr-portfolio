@@ -1,3 +1,5 @@
+> **V4:** read [V4-NOTES.md](V4-NOTES.md) first: one new SQL migration (`supabase/migration-004-media-skills-typography.sql`) and the list of new admin features.
+
 # imsrikanth — Stitch design + Supabase backend + Admin panel
 
 Design, fonts and animations are preserved; see the v3 section at the end for the latest changes.

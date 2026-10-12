@@ -8,7 +8,7 @@
 -- Who is the admin? Only this email can write anything.
 create or replace function public.is_admin() returns boolean
 language sql stable as $$
-  select coalesce(auth.jwt() ->> 'email', '') = 'srsrikanth216@gmail.com'
+  select coalesce(auth.jwt() ->> 'email', '') = 'YOUR_ADMIN_EMAIL'
 $$;
 
 -- Single-value content: info, nav, texts, hero_metrics, clients, images

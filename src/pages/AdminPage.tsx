@@ -1,11 +1,17 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ExternalLink, Inbox, Key, Layers, Lock, LogOut, Menu, Palette, User, X, Image as ImageIcon, Navigation, Type, BarChart3, Megaphone, Briefcase, Tags, Mail, Wrench, FolderKanban } from 'lucide-react';
+import { ExternalLink, Inbox, Key, Layers, Lock, LogOut, Menu, Palette, User, X, Image as ImageIcon, Navigation, Type, BarChart3, Megaphone, Briefcase, Tags, Mail, Wrench, FolderKanban, LayoutDashboard, Sparkles, Images, HardDrive, Heading, Phone, Brush } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 import { AppearanceAdmin } from '../components/admin/AppearanceAdmin';
 import { ContentAdmin } from '../components/admin/ContentAdmin';
 import { ProfileAdmin } from '../components/admin/ProfileAdmin';
 import { InboxAdmin } from '../components/admin/InboxAdmin';
 import { LayoutAdmin } from '../components/admin/LayoutAdmin';
+import { DashboardAdmin } from '../components/admin/DashboardAdmin';
+import { SkillsAdmin } from '../components/admin/SkillsAdmin';
+import { HeadingsAdmin } from '../components/admin/HeadingsAdmin';
+import { TypographyAdmin } from '../components/admin/TypographyAdmin';
+import { MediaLibraryAdmin } from '../components/admin/MediaLibrary';
+import { StorageAdmin } from '../components/admin/StorageAdmin';
 import { hasUnsavedChanges } from '../components/admin/AdminDirty';
 import { CONTENT_TABS, ContentTab } from '../components/admin/ContentAdmin';
 
@@ -50,19 +56,32 @@ const LoginForm: React.FC = () => {
 
 type NavEntry = { id: string; label: string; icon: React.ComponentType<{ className?: string }>; hint: string };
 const GROUPS: { title: string; items: NavEntry[] }[] = [
-  { title: 'Site', items: [
-    { id: 'layout', label: 'Sections & Layout', icon: Layers, hint: 'Order, visibility and headings of every section' },
-    { id: 'appearance', label: 'Appearance', icon: Palette, hint: 'Theme, typography, hero animation and default light/dark mode' },
-    { id: 'profile', label: 'Hero, Contact & Social', icon: User, hint: 'Name, hero text, contact details, bio, skills, education and CV' },
+  { title: 'Overview', items: [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, hint: 'Summary, shortcuts and setup status' },
   ] },
-  { title: 'Content', items: [
-    { id: 'Projects', label: 'My Own Projects', icon: FolderKanban, hint: 'Websites and products you built' },
-    { id: 'Advertising', label: 'Advertising Work', icon: Megaphone, hint: 'Work for companies and clients' },
-    { id: 'Experience', label: 'Work Experience', icon: Briefcase, hint: 'Work-history timeline' },
+  { title: 'Profile & About', items: [
+    { id: 'profile', label: 'Profile & About', icon: User, hint: 'Name, hero text, biography, education, certifications and CV' },
+    { id: 'Images', label: 'About Portrait', icon: ImageIcon, hint: 'Profile image shown in the About section (transparent PNG supported)' },
+    { id: 'contact', label: 'Contact & Social Links', icon: Phone, hint: 'Email, phone, WhatsApp, location and social profiles' },
+  ] },
+  { title: 'Portfolio content', items: [
+    { id: 'skills', label: 'Skills', icon: Sparkles, hint: 'Categories, skills, icons, levels and display style' },
+    { id: 'Projects', label: 'Projects', icon: FolderKanban, hint: 'Websites and products you built' },
+    { id: 'Advertising', label: 'Advertising Campaigns', icon: Megaphone, hint: 'Work for companies and clients' },
+    { id: 'Experience', label: 'Work Experience', icon: Briefcase, hint: 'Work-history timeline, with optional company / work images' },
     { id: 'Brands', label: 'Brand Ticker', icon: Tags, hint: 'Scrolling brand names' },
     { id: 'Hero stats', label: 'Hero Metrics', icon: BarChart3, hint: 'Numbers under the hero buttons' },
-    { id: 'Images', label: 'Images', icon: ImageIcon, hint: 'About Me portrait (transparent PNG supported)' },
-    { id: 'Navigation', label: 'Navigation', icon: Navigation, hint: 'Top bar and mobile menu links' },
+  ] },
+  { title: 'Media & storage', items: [
+    { id: 'media', label: 'Media Library', icon: Images, hint: 'Upload, browse, re-use, replace and delete images; track where each is used' },
+    { id: 'storage', label: 'Storage Management', icon: HardDrive, hint: 'Storage usage, unused files and safe clean-up' },
+  ] },
+  { title: 'Site settings', items: [
+    { id: 'headings', label: 'Section Headings', icon: Heading, hint: 'Rename every section heading, eyebrow and subtitle' },
+    { id: 'appearance', label: 'Appearance', icon: Palette, hint: 'Theme colours, hero animation, default light/dark mode and font pair' },
+    { id: 'typography', label: 'Typography & Highlights', icon: Brush, hint: 'Heading fonts, gradients, underlines, highlighted words and corner radius' },
+    { id: 'layout', label: 'Section Visibility & Order', icon: Layers, hint: 'Show, hide and reorder sections' },
+    { id: 'Navigation', label: 'Navbar Links', icon: Navigation, hint: 'Top bar and mobile menu links' },
     { id: 'Texts', label: 'All Texts', icon: Type, hint: 'Every label and heading on the website' },
   ] },
   { title: 'Messages & system', items: [
@@ -75,7 +94,7 @@ const ALL = GROUPS.flatMap((g) => g.items);
 
 export default function AdminPage() {
   const { session, signOut, ready, tickets } = useContent();
-  const [page, setPage] = useState<string>('layout');
+  const [page, setPage] = useState<string>('dashboard');
   const [drawer, setDrawer] = useState(false);
   const drawerBtn = useRef<HTMLButtonElement>(null);
 
@@ -182,16 +201,23 @@ export default function AdminPage() {
               </div>
             )}
 
-            <main className="px-4 sm:px-6 lg:px-8 pb-16 pt-6 max-w-5xl">
+            <main className={`px-4 sm:px-6 lg:px-8 pb-16 pt-6 ${page === 'media' ? 'max-w-7xl' : 'max-w-5xl'}`}>
               <div className="mb-6 hidden lg:block">
                 <h1 className="text-xl font-bold">{current.label}</h1>
                 <p className="text-xs text-zinc-500 mt-1">{current.hint}</p>
               </div>
               {!ready ? <p className="text-xs text-zinc-500 font-mono-code">Loading content…</p> : (
                 <>
+                  {page === 'dashboard' && <DashboardAdmin onNavigate={go} />}
                   {page === 'layout' && <LayoutAdmin onNavigate={go} />}
                   {page === 'appearance' && <AppearanceAdmin />}
-                  {page === 'profile' && <ProfileAdmin />}
+                  {page === 'typography' && <TypographyAdmin />}
+                  {page === 'headings' && <HeadingsAdmin />}
+                  {page === 'skills' && <SkillsAdmin />}
+                  {page === 'media' && <MediaLibraryAdmin />}
+                  {page === 'storage' && <StorageAdmin />}
+                  {page === 'profile' && <ProfileAdmin view="profile" />}
+                  {page === 'contact' && <ProfileAdmin view="contact" />}
                   {page === 'inbox' && <InboxAdmin />}
                   {(CONTENT_TABS as readonly string[]).includes(page) && <ContentAdmin tab={page as ContentTab} />}
                 </>

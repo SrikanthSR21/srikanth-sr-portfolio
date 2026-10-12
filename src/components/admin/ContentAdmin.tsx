@@ -49,7 +49,7 @@ const CAMPAIGN_FIELDS: Field[] = [
   { key: 'metricHeadline', label: 'Headline result', type: 'text' },
   { key: 'summary', label: 'Summary', type: 'textarea' },
   { key: 'hasScreenshot', label: 'Show screenshot', type: 'bool' },
-  { key: 'screenshotImage', label: 'Screenshot / report image', type: 'image', folder: 'advertising' },
+  { key: 'screenshotImage', label: 'Screenshot / report image', type: 'image', folder: 'advertising', optional: true },
   { key: 'achievements', label: 'Achievements (one per line)', type: 'lines' },
   { key: 'keyStats', label: 'Key stats', type: 'pairs' },
 ];
@@ -61,6 +61,13 @@ const EXPERIENCE_FIELDS: Field[] = [
   { key: 'isCurrent', label: 'Current job', type: 'bool' },
   { key: 'summary', label: 'Summary', type: 'textarea' },
   { key: 'achievements', label: 'Achievements (one per line)', type: 'lines' },
+  { key: 'image', label: 'Card image (optional)', type: 'image', folder: 'experience', optional: true,
+    hint: 'A company logo, branding or work photo. Privacy: do NOT upload an ID card that shows ID numbers, barcodes/QR codes, address or date of birth: crop or blur those first. Remove the image at any time.' },
+  { key: 'imageAlt', label: 'Image description (alt text)', type: 'text', showIf: (it) => !!it.image, hint: 'Read by screen readers. Defaults to the company and role.' },
+  { key: 'imagePosition', label: 'Image position', type: 'select', options: ['right', 'left', 'top', 'bottom'], showIf: (it) => !!it.image, hint: 'On phones the image always stacks above/below the text.' },
+  { key: 'imageSize', label: 'Image size', type: 'select', options: ['md', 'sm', 'lg'], showIf: (it) => !!it.image },
+  { key: 'imageFit', label: 'Image fit', type: 'select', options: ['contain', 'cover'], showIf: (it) => !!it.image, hint: 'contain = whole image visible (logos). cover = fills the frame (photos, may crop edges).' },
+  { key: 'imageCaption', label: 'Image caption (optional)', type: 'text', showIf: (it) => !!it.image },
 ];
 
 /** Tabs exposed as sidebar entries by AdminPage */
@@ -69,7 +76,7 @@ export type ContentTab = (typeof CONTENT_TABS)[number];
 
 const GROUP_TITLES: Record<string, string> = {
   seo: 'Browser tab & search', hero: 'Hero', about: 'About Me', projects: 'My Own Projects', ads: 'Advertising Portfolio',
-  branding: 'Branding & Work Experience', contact: 'Contact', footer: 'Footer',
+  branding: 'Branding & Work Experience', skills: 'Skills', contact: 'Contact', footer: 'Footer',
 };
 
 const TextsEditor: React.FC = () => {
@@ -114,20 +121,20 @@ const ImagesEditor: React.FC = () => {
       <section className="space-y-3 max-w-2xl">
         <h4 className="text-xs uppercase tracking-widest text-zinc-400">About Me portrait</h4>
         <ImageUploader large value={draft.profile} folder="profile"
-          onChange={(url, meta) => setDraft((d) => ({ ...d, profile: url, profileTransparent: meta ? meta.hasAlpha : d.profileTransparent }))} />
+          onChange={(url, meta) => setDraft((d) => ({ ...d, profile: url, profileTransparent: meta ? meta.hasAlpha : d.profileTransparent, profileWidth: meta?.width || undefined, profileHeight: meta?.height || undefined }))} />
         <label className="grid gap-1.5 max-w-xs">
           <span className="text-[10px] uppercase tracking-wider text-zinc-500">How to display it</span>
           <select className={inputCls} value={draft.profileDisplay ?? 'auto'} onChange={(e) => setDraft((d) => ({ ...d, profileDisplay: e.target.value as SiteImages['profileDisplay'] }))}>
-            <option value="auto">Automatic (cut-out for transparent images, arch frame otherwise)</option>
-            <option value="cutout">Free cut-out: no frame, never cropped</option>
-            <option value="framed">Arch frame</option>
+            <option value="auto">Automatic (soft shadow, none for transparent images)</option>
+            <option value="framed">Always a soft shadow</option>
+            <option value="cutout">Never a shadow (flat)</option>
           </select>
         </label>
         <label className="flex items-center gap-2.5 text-xs text-zinc-300 cursor-pointer">
           <input type="checkbox" className="w-4 h-4 accent-white" checked={!!draft.profileTransparent} onChange={(e) => setDraft((d) => ({ ...d, profileTransparent: e.target.checked }))} />
           This image has a transparent background (detected automatically on upload)
         </label>
-        <p className="text-[11px] text-zinc-500">The image you upload is shown exactly as uploaded: no filter and no background is added behind transparent areas. Save to publish. Project, campaign and brand images are edited inside their own sections.</p>
+        <p className="text-[11px] text-zinc-500">The portrait is always shown as a clean rectangle with no border, at its original proportions (never cropped or stretched), exactly as uploaded: no filter and no background behind transparent areas. Save to publish. Project, campaign and brand images are edited inside their own sections.</p>
       </section>
     </div>
   );

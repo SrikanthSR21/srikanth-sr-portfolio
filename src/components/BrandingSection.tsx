@@ -2,11 +2,74 @@ import { useContent } from '../context/ContentContext';
 import React from 'react';
 import { ExperienceItem, FontPairOption } from '../types';
 import { Zap } from 'lucide-react';
+import { SectionHeading } from './SectionHeading';
 
 interface BrandingSectionProps {
   workExperience: ExperienceItem[];
   fontPair: FontPairOption;
 }
+
+
+const SIDE_W: Record<NonNullable<ExperienceItem['imageSize']>, string> = { sm: 'sm:w-28', md: 'sm:w-40', lg: 'sm:w-56' };
+const STACK_W: Record<NonNullable<ExperienceItem['imageSize']>, string> = { sm: 'max-w-[10rem]', md: 'max-w-[16rem]', lg: 'max-w-md' };
+
+/** One work-history entry. The picture is optional: with no image the layout is exactly the original text-only entry. */
+const ExperienceBody: React.FC<{ exp: ExperienceItem; fontPair: FontPairOption }> = ({ exp, fontPair }) => {
+  const image = exp.image?.trim();
+  const pos = exp.imagePosition ?? 'right';
+  const size = exp.imageSize ?? 'md';
+  const side = pos === 'left' || pos === 'right';
+
+  const text = (
+    <div className="min-w-0 flex-1">
+      {/* Role & Company */}
+      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 mb-2">
+        <h4 className={`card-heading text-xl sm:text-2xl font-bold text-white uppercase tracking-tight break-words min-w-0 ${fontPair.headlineClass}`}>{exp.role}</h4>
+        <span className="text-xs font-mono-code text-zinc-400 tabular-nums">{exp.period}</span>
+      </div>
+      <div className="text-sm font-semibold text-zinc-300 uppercase tracking-wider font-mono-code mb-3 break-words">
+        {exp.company} <span className="text-zinc-500">· {exp.location}</span>
+      </div>
+      <p className="text-sm text-zinc-400 leading-relaxed mb-4 break-words">{exp.summary}</p>
+      <ul className="space-y-2 text-xs sm:text-sm text-zinc-300">
+        {exp.achievements.map((ach, aIdx) => (
+          <li key={aIdx} className="flex items-start gap-2.5">
+            <span className="text-white font-mono-code mt-0.5">•</span>
+            <span>{ach}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+  if (!image) return text;
+
+  const figure = (
+    <figure className={`shrink-0 w-full ${side ? SIDE_W[size] : `${STACK_W[size]}`} ${side ? 'max-w-[16rem]' : ''}`}>
+      {/* Fixed frame (no layout shift); contain keeps logos whole, cover fills the frame for photos */}
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[var(--radius-card,20px)] bg-white/5 border border-white/10">
+        <img
+          src={image}
+          alt={exp.imageAlt?.trim() || `${exp.company}${exp.role ? ` · ${exp.role}` : ''}`}
+          loading="lazy"
+          decoding="async"
+          referrerPolicy="no-referrer"
+          className={`absolute inset-0 w-full h-full ${exp.imageFit === 'cover' ? 'object-cover' : 'object-contain p-3'}`}
+        />
+      </div>
+      {exp.imageCaption && <figcaption className="mt-2 text-[11px] font-mono-code text-zinc-500 break-words">{exp.imageCaption}</figcaption>}
+    </figure>
+  );
+
+  // Mobile: always stacked. 'left'/'top' put the picture first, 'right'/'bottom' after the text.
+  const first = pos === 'left' || pos === 'top';
+  return (
+    <div className={`flex flex-col gap-4 ${side ? 'sm:flex-row sm:gap-6 sm:items-start' : ''}`}>
+      {first && figure}
+      {text}
+      {!first && figure}
+    </div>
+  );
+};
 
 export const BrandingSection: React.FC<BrandingSectionProps> = ({
   workExperience,
@@ -16,18 +79,7 @@ export const BrandingSection: React.FC<BrandingSectionProps> = ({
   return (
     <section id="branding" className="py-16 sm:py-24 px-5 sm:px-6 border-b border-white/10 relative overflow-hidden">
       <div className="max-w-7xl mx-auto">
-        {/* Section Top Header */}
-        <div className="mb-10 sm:mb-16">
-          <div className="text-xs font-mono-code uppercase tracking-widest text-zinc-400 mb-2">
-            {t('branding.eyebrow')}
-          </div>
-          <h2
-            className={`text-3xl sm:text-4xl md:text-5xl font-black text-white uppercase tracking-tight break-words ${fontPair.headlineClass}`}
-          >
-            {t('branding.title')}
-          </h2>
-          {t('branding.subtitle') && <p className="mt-3 text-sm font-mono-code text-zinc-400 max-w-2xl">{t('branding.subtitle')}</p>}
-        </div>
+        <SectionHeading id="branding" eyebrow={t('branding.eyebrow')} title={t('branding.title')} subtitle={t('branding.subtitle')} fontPair={fontPair} className="mb-10 sm:mb-16" />
 
         {/* Brand ticker */}
         <div className="mb-14 sm:mb-20">
@@ -82,7 +134,7 @@ export const BrandingSection: React.FC<BrandingSectionProps> = ({
               </div>
 
               {/* Large prominent text: CYBERFIX */}
-              <h3 className={`text-4xl sm:text-5xl font-black text-white tracking-widest uppercase mb-2 break-words max-w-full ${fontPair.headlineClass}`}>
+              <h3 className={`card-heading text-4xl sm:text-5xl font-black text-white tracking-widest uppercase mb-2 break-words max-w-full ${fontPair.headlineClass}`}>
                 {t('branding.frameTitle')}
               </h3>
               <div className="text-xs font-mono-code text-zinc-400 uppercase tracking-widest mb-6">
@@ -129,34 +181,7 @@ export const BrandingSection: React.FC<BrandingSectionProps> = ({
                 <div key={exp.id} className="relative group">
                   {/* Small white circle icon marking each timeline point */}
                   <div className="absolute -left-[31px] sm:-left-[39px] top-1 w-4 h-4 rounded-full bg-black border-2 border-white group-hover:scale-125 group-hover:bg-white transition-all shadow-[0_0_10px_rgb(var(--fg-rgb)/0.4)]" />
-
-                  {/* Role & Company */}
-                  <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 mb-2">
-                    <h4 className={`text-xl sm:text-2xl font-bold text-white uppercase tracking-tight break-words min-w-0 ${fontPair.headlineClass}`}>
-                      {exp.role}
-                    </h4>
-                    <span className="text-xs font-mono-code text-zinc-400 tabular-nums">
-                      {exp.period}
-                    </span>
-                  </div>
-
-                  <div className="text-sm font-semibold text-zinc-300 uppercase tracking-wider font-mono-code mb-3 break-words">
-                    {exp.company} <span className="text-zinc-500">· {exp.location}</span>
-                  </div>
-
-                  <p className="text-sm text-zinc-400 leading-relaxed mb-4 break-words">
-                    {exp.summary}
-                  </p>
-
-                  {/* Bullet Highlights */}
-                  <ul className="space-y-2 text-xs sm:text-sm text-zinc-300">
-                    {exp.achievements.map((ach, aIdx) => (
-                      <li key={aIdx} className="flex items-start gap-2.5">
-                        <span className="text-white font-mono-code mt-0.5">•</span>
-                        <span>{ach}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <ExperienceBody exp={exp} fontPair={fontPair} />
                 </div>
               ))}
             </div>

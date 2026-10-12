@@ -2,6 +2,7 @@ import React, { useId, useRef, useState } from 'react';
 import { Send, MessageSquare, CheckCircle, Mail, Phone, Loader2, AlertCircle } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 import { FontPairOption } from '../types';
+import { SectionHeading } from './SectionHeading';
 import { EnquiryErrors, EnquiryError, EnquiryResult, LIMITS, newRef, submitEnquiry, validateEnquiry, whatsappLink } from '../lib/enquiry';
 
 interface ContactSectionProps {
@@ -96,13 +97,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ fontPair, whatsa
   return (
     <section id="contact" className="py-16 sm:py-24 px-5 sm:px-6 border-b border-white/10 relative">
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-10 sm:mb-14">
-          <div className="text-xs font-mono-code uppercase tracking-widest text-zinc-400 mb-2">{t('contact.eyebrow')}</div>
-          <h2 className={`text-3xl sm:text-5xl md:text-6xl font-black text-white uppercase tracking-tight mb-4 break-words ${fontPair.headlineClass}`}>
-            {t('contact.title')}
-          </h2>
-          {t('contact.subtitle') && <p className="text-sm font-mono-code text-zinc-400">{t('contact.subtitle')}</p>}
-        </div>
+        <SectionHeading id="contact" variant="hero" eyebrow={t('contact.eyebrow')} title={t('contact.title')} subtitle={t('contact.subtitle')} fontPair={fontPair} className="mb-10 sm:mb-14" />
 
         <div className="p-5 sm:p-12 rounded-[24px] bg-black border border-white/20 shadow-2xl relative">
           {done ? (
@@ -145,7 +140,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ fontPair, whatsa
                 <div className="space-y-2 min-w-0">
                   <label htmlFor={id('name')} className={label}>{t('contact.nameLabel')} *</label>
                   <input id={id('name')} type="text" autoComplete="name" maxLength={LIMITS.name + 20} required value={form.name} onChange={set('name')}
-                    placeholder="e.g. Morgan Maxwell" className={`${field} ${border('name')}`} {...errProps('name', id('name'))} />
+                    placeholder="e.g. Jane Doe" className={`${field} ${border('name')}`} {...errProps('name', id('name'))} />
                   <Err k="name" fieldId={id('name')} />
                 </div>
                 <div className="space-y-2 min-w-0">

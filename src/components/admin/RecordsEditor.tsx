@@ -4,10 +4,10 @@ import { ImageUploader } from './ImageUploader';
 import { SaveBar } from './SaveBar';
 import { useDraft, useSaver } from './AdminDirty';
 
-type Base = { key: string; label: string; hint?: string };
+type Base = { key: string; label: string; hint?: string; /** Only render this field when the predicate is true (e.g. image options once an image is set) */ showIf?: (item: any) => boolean };
 export type Field =
   | (Base & { type: 'text' | 'textarea' | 'bool' })
-  | (Base & { type: 'image'; folder: string })
+  | (Base & { type: 'image'; folder: string; /** adds a Remove button */ optional?: boolean })
   | (Base & { type: 'select'; options: string[] })
   | (Base & { type: 'combo'; options: string[] })   // free text with suggestions
   | (Base & { type: 'lines' })   // string[]: one per line
@@ -23,7 +23,7 @@ function FieldControl({ f, value, onChange, id }: { f: Field; value: any; onChan
     case 'bool':
       return <input id={id} type="checkbox" className="w-4 h-4 accent-white" checked={!!value} onChange={(e) => onChange(e.target.checked)} />;
     case 'image':
-      return <ImageUploader value={value ?? ''} onChange={(url) => onChange(url)} folder={f.folder} />;
+      return <ImageUploader value={value ?? ''} onChange={(url) => onChange(url)} folder={f.folder} allowClear={f.optional} />;
     case 'select':
       return (
         <select id={id} className={inputCls} value={value ?? ''} onChange={(e) => onChange(e.target.value)}>
@@ -132,7 +132,7 @@ export function RecordsEditor<T extends { id: string }>({
             </div>
             {expanded && (
               <div className="px-3 sm:px-4 pb-4 grid gap-4 border-t border-white/10 pt-4">
-                {fields.map((f) => {
+                {fields.filter((f) => !f.showIf || f.showIf(it)).map((f) => {
                   const fid = `${it.id}-${f.key}`;
                   return f.type === 'bool' ? (
                     <label key={f.key} htmlFor={fid} className="flex items-center gap-2.5 text-xs text-zinc-300 cursor-pointer">

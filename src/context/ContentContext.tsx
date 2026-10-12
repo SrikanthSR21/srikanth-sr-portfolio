@@ -2,9 +2,11 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import {
-  DEFAULT_ENQUIRY_TYPES, DEFAULT_HERO_METRICS, DEFAULT_IMAGES, DEFAULT_NAV, DEFAULT_TEXTS, DEFAULT_THEME,
+  DEFAULT_ENQUIRY_TYPES, DEFAULT_HERO_METRICS, DEFAULT_IMAGES, DEFAULT_NAV, DEFAULT_TEXTS, DEFAULT_THEME, normalizeNav,
   ClientLogo, HeroMetric, NavItem, SiteImages,
 } from '../lib/defaults';
+import { deriveSkillsFromInfo, normalizeSkills, SkillsConfig } from '../lib/skills';
+import { DEFAULT_TYPOGRAPHY, normalizeTypography, TypographySettings } from '../lib/typography';
 import { DEFAULT_LAYOUT, normalizeLayout, SectionConfig } from '../lib/sections';
 import {
   AD_CAMPAIGNS_DATA, CLIENT_LOGOS, INITIAL_PORTFOLIO_INFO, PROJECTS_DATA, WORK_EXPERIENCE_DATA,
@@ -23,6 +25,10 @@ type Settings = {
   layout: SectionConfig[];
   /** Suggestions in the contact form's enquiry-type field */
   enquiry_types: string[];
+  /** Skill categories + skills (falls back to the legacy info.skills until the admin saves from Admin → Skills) */
+  skills: SkillsConfig;
+  /** Heading / highlight / radius styling */
+  typography: TypographySettings;
 };
 type Collections = {
   projects: ProjectItem[];
@@ -42,6 +48,8 @@ const DEFAULT_SETTINGS: Settings = {
   theme: DEFAULT_THEME,
   layout: DEFAULT_LAYOUT,
   enquiry_types: DEFAULT_ENQUIRY_TYPES,
+  skills: deriveSkillsFromInfo(INITIAL_PORTFOLIO_INFO.skills),
+  typography: DEFAULT_TYPOGRAPHY,
 };
 const DEFAULT_COLLECTIONS: Collections = {
   projects: PROJECTS_DATA,
@@ -50,7 +58,12 @@ const DEFAULT_COLLECTIONS: Collections = {
 };
 
 interface ContentValue {
+  /** Fresh data from the backend has arrived (or there is no backend) */
   ready: boolean;
+  /** `ready`, or the page was started from the visitor's saved copy of the last content: safe to show the real identity */
+  hydrated: boolean;
+  /** true while the visible content comes from the visitor's local copy and a refresh is still in flight */
+  fromCache: boolean;
   backendConnected: boolean;
   settings: Settings;
   collections: Collections;
@@ -66,61 +79,109 @@ interface ContentValue {
   signOut: () => Promise<void>;
 }
 
+
+// ------------------------------------------------------------------------------------------------
+// First-paint strategy (fixes the old-name flash).
+// The built-in defaults are only a last resort. Every successful load stores a snapshot of the backend rows in
+// localStorage; the next visit starts from that snapshot, so the name, texts, theme and typography are the saved ones
+// from the very first render. A first-ever visit (no snapshot) shows a neutral splash until the data arrives.
+// ------------------------------------------------------------------------------------------------
+const SNAPSHOT_KEY = 'site_snapshot_v4';
+type ContentRow = { key: string; value: any };
+interface Snapshot { v: 1; content: ContentRow[]; projects: ProjectItem[] | null; ad_campaigns: AdCampaignItem[] | null; experience: ExperienceItem[] | null }
+
+function readSnapshot(): Snapshot | null {
+  try {
+    const raw = localStorage.getItem(SNAPSHOT_KEY);
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    return s && s.v === 1 && Array.isArray(s.content) ? (s as Snapshot) : null;
+  } catch { return null; }
+}
+function writeSnapshot(s: Snapshot) { try { localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(s)); } catch { /* storage full / private mode */ } }
+
+/** Rows from site_content → Settings. Used for BOTH the cached snapshot and fresh data so they can never disagree. */
+function buildSettings(rows: ContentRow[]): Settings {
+  const next: Settings = { ...DEFAULT_SETTINGS };
+  let skillsRow: unknown;
+  rows.forEach((row) => {
+    if (row.key === 'texts') next.texts = { ...DEFAULT_TEXTS, ...row.value };
+    else if (row.key === 'info') next.info = { ...INITIAL_PORTFOLIO_INFO, ...row.value };
+    else if (row.key === 'images') next.images = { ...DEFAULT_IMAGES, ...row.value };
+    else if (row.key === 'theme') next.theme = { ...DEFAULT_THEME, ...row.value };
+    else if (row.key === 'layout') next.layout = normalizeLayout(row.value);
+    else if (row.key === 'nav') next.nav = normalizeNav(row.value);
+    else if (row.key === 'skills') skillsRow = row.value;
+    else if (row.key === 'typography') next.typography = normalizeTypography(row.value);
+    else if (row.key === 'enquiry_types') {
+      next.enquiry_types = Array.isArray(row.value) ? row.value.filter((v: unknown) => typeof v === 'string' && v.trim()).map((v: string) => v.trim().slice(0, 80)) : [];
+    }
+    else if (row.key === 'hero_metrics' || row.key === 'clients') (next as any)[row.key] = row.value;
+  });
+  next.skills = normalizeSkills(skillsRow, next.info.skills);
+  return next;
+}
+function buildCollections(s: Snapshot | null): Collections {
+  return {
+    projects: s?.projects?.length ? s.projects : PROJECTS_DATA,
+    ad_campaigns: s?.ad_campaigns?.length ? s.ad_campaigns : AD_CAMPAIGNS_DATA,
+    experience: s?.experience?.length ? s.experience : WORK_EXPERIENCE_DATA,
+  };
+}
+
 const Ctx = createContext<ContentValue | null>(null);
 
-export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ContentProvider: React.FC<{ children: React.ReactNode; /** false on /admin: the dashboard must always edit FRESH data, never a cached copy */ useCache?: boolean }> = ({ children, useCache = true }) => {
+  const snapshot0 = useMemo(() => (useCache && supabase ? readSnapshot() : null), [useCache]);
   const [settings, setSettings] = useState<Settings>(() => {
+    if (snapshot0) return buildSettings(snapshot0.content);
     try {
       const cached = localStorage.getItem('site_theme_cache');
       return cached ? { ...DEFAULT_SETTINGS, theme: { ...DEFAULT_THEME, ...JSON.parse(cached) } } : DEFAULT_SETTINGS;
     } catch { return DEFAULT_SETTINGS; }
   });
-  const [collections, setCollections] = useState<Collections>(DEFAULT_COLLECTIONS);
+  const [collections, setCollections] = useState<Collections>(() => buildCollections(snapshot0));
   const [tickets, setTickets] = useState<TicketItem[]>([]);
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(!supabase);
+  const hadSnapshot = !!snapshot0;
 
   // ---- load public data (initial, on realtime change, and when the tab regains focus) ----
   const load = useCallback(async () => {
     if (!supabase) return;
     try {
-        const [content, projects, campaigns, experience] = await Promise.all([
-          supabase.from('site_content').select('key,value'),
-          supabase.from('projects').select('data').order('sort_order'),
-          supabase.from('ad_campaigns').select('data').order('sort_order'),
-          supabase.from('experience').select('data').order('sort_order'),
-        ]);
+      const [content, projects, campaigns, experience] = await Promise.all([
+        supabase.from('site_content').select('key,value'),
+        supabase.from('projects').select('data').order('sort_order'),
+        supabase.from('ad_campaigns').select('data').order('sort_order'),
+        supabase.from('experience').select('data').order('sort_order'),
+      ]);
+      // A failed request must NEVER reset what is on screen (cached or already loaded) back to the built-in defaults.
+      if (content.error) throw content.error;
 
-        const next: Settings = { ...DEFAULT_SETTINGS };
-        (content.data ?? []).forEach((row: { key: string; value: any }) => {
-          if (row.key === 'texts') next.texts = { ...DEFAULT_TEXTS, ...row.value };
-          else if (row.key === 'info') next.info = { ...INITIAL_PORTFOLIO_INFO, ...row.value };
-          else if (row.key === 'images') next.images = { ...DEFAULT_IMAGES, ...row.value };
-          else if (row.key === 'theme') next.theme = { ...DEFAULT_THEME, ...row.value };
-          else if (row.key === 'layout') next.layout = normalizeLayout(row.value);
-          else if (row.key === 'enquiry_types') {
-            const list = Array.isArray(row.value) ? row.value.filter((v: unknown) => typeof v === 'string' && v.trim()).map((v: string) => v.trim().slice(0, 80)) : [];
-            next.enquiry_types = list;
-          }
-          else if (row.key in next) (next as any)[row.key] = row.value;
-        });
-        setSettings(next);
-        try { localStorage.setItem('site_theme_cache', JSON.stringify(next.theme)); } catch { /* ignore */ }
+      const rows = (content.data ?? []) as ContentRow[];
+      const next = buildSettings(rows);
+      setSettings(next);
+      try { localStorage.setItem('site_theme_cache', JSON.stringify(next.theme)); } catch { /* ignore */ }
 
-        // Empty table = not seeded yet → keep the built-in defaults.
-        const pick = <T,>(res: { data: { data: T }[] | null }, fb: T[]) =>
-          res.data && res.data.length ? res.data.map((r) => r.data) : fb;
-        setCollections({
-          projects: pick<ProjectItem>(projects as any, PROJECTS_DATA),
-          ad_campaigns: pick<AdCampaignItem>(campaigns as any, AD_CAMPAIGNS_DATA),
-          experience: pick<ExperienceItem>(experience as any, WORK_EXPERIENCE_DATA),
-        });
+      const data = <T,>(res: { data: { data: T }[] | null; error: unknown }): T[] | null | undefined =>
+        res.error ? undefined : res.data && res.data.length ? res.data.map((r) => r.data) : null;
+      const p = data<ProjectItem>(projects as any), a = data<AdCampaignItem>(campaigns as any), e = data<ExperienceItem>(experience as any);
+      // undefined = that request failed (keep what we have); null = table empty / not seeded yet (built-in defaults)
+      setCollections((prev) => ({
+        projects: p === undefined ? prev.projects : p ?? PROJECTS_DATA,
+        ad_campaigns: a === undefined ? prev.ad_campaigns : a ?? AD_CAMPAIGNS_DATA,
+        experience: e === undefined ? prev.experience : e ?? WORK_EXPERIENCE_DATA,
+      }));
+      if (useCache && p !== undefined && a !== undefined && e !== undefined) {
+        writeSnapshot({ v: 1, content: rows, projects: p, ad_campaigns: a, experience: e });
+      }
     } catch (e) {
-      console.warn('Backend unreachable, using built-in content', e);
+      console.warn('Backend unreachable, keeping the content already on screen', e);
     } finally {
       setReady(true);
     }
-  }, []);
+  }, [useCache]);
 
   useEffect(() => {
     if (!supabase) return;
@@ -223,9 +284,9 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const t = useCallback((key: string) => settings.texts[key] ?? DEFAULT_TEXTS[key] ?? key, [settings.texts]);
 
   const value = useMemo<ContentValue>(() => ({
-    ready, backendConnected: !!supabase, settings, collections, tickets, session, t,
+    ready, hydrated: ready || hadSnapshot, fromCache: hadSnapshot && !ready, backendConnected: !!supabase, settings, collections, tickets, session, t,
     saveSetting, saveCollection, refreshTickets, updateTicketStatus, signIn, signOut,
-  }), [ready, settings, collections, tickets, session, t, saveSetting, saveCollection, refreshTickets, updateTicketStatus, signIn, signOut]);
+  }), [ready, hadSnapshot, settings, collections, tickets, session, t, saveSetting, saveCollection, refreshTickets, updateTicketStatus, signIn, signOut]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 };

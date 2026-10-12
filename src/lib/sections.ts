@@ -2,7 +2,7 @@
 // The public page renders whatever order/visibility is saved in site_content.layout,
 // but only ids listed here are ever rendered, so stored data can never inject arbitrary code.
 
-export type SectionId = 'hero' | 'about' | 'projects' | 'advertising' | 'branding' | 'contact' | 'footer';
+export type SectionId = 'hero' | 'about' | 'skills' | 'projects' | 'advertising' | 'branding' | 'contact' | 'footer';
 
 export interface SectionConfig {
   id: SectionId;
@@ -34,13 +34,25 @@ export const SECTION_REGISTRY: Record<SectionId, SectionMeta> = {
   },
   about: {
     defaultLabel: 'About Me',
-    description: 'Portrait, biography, education and skills.',
+    description: 'Portrait, biography, education and certifications. Skills have their own section.',
     textFields: [
       { key: 'about.eyebrow', label: 'Eyebrow' },
       { key: 'about.title', label: 'Title' },
       { key: 'about.subtitle', label: 'Subtitle', multiline: true },
+      { key: 'about.educationLabel', label: 'Education card heading' },
+      { key: 'about.certLabel', label: 'Certification card heading' },
     ],
     anchors: ['about'],
+  },
+  skills: {
+    defaultLabel: 'Skills',
+    description: 'Skill cards grouped by category. Add, reorder and categorise skills under Admin → Skills.',
+    textFields: [
+      { key: 'skills.eyebrow', label: 'Eyebrow' },
+      { key: 'skills.title', label: 'Title' },
+      { key: 'skills.subtitle', label: 'Subtitle', multiline: true },
+    ],
+    anchors: ['skills'],
   },
   projects: {
     defaultLabel: 'My Own Projects',
@@ -103,7 +115,7 @@ export const SECTION_REGISTRY: Record<SectionId, SectionMeta> = {
 export const SECTION_IDS = Object.keys(SECTION_REGISTRY) as SectionId[];
 
 export const DEFAULT_LAYOUT: SectionConfig[] = [
-  'hero', 'about', 'projects', 'advertising', 'branding', 'contact', 'footer',
+  'hero', 'about', 'skills', 'projects', 'advertising', 'branding', 'contact', 'footer',
 ].map((id) => ({ id: id as SectionId, label: SECTION_REGISTRY[id as SectionId].defaultLabel, visible: true }));
 
 /** Accepts anything read from the database and returns a safe, complete layout:
@@ -121,7 +133,15 @@ export function normalizeLayout(raw: unknown): SectionConfig[] {
       out.push({ id, label, visible: (r as any).visible !== false });
     }
   }
-  for (const d of DEFAULT_LAYOUT) if (!seen.has(d.id)) out.push({ ...d });
+  // Sections that did not exist when the layout was saved (e.g. Skills, added in V4) are inserted right after the
+  // section that precedes them by default, instead of being appended after the footer.
+  DEFAULT_LAYOUT.forEach((d, di) => {
+    if (seen.has(d.id)) return;
+    let at = -1;
+    for (let k = di - 1; k >= 0 && at < 0; k--) at = out.findIndex((o) => o.id === DEFAULT_LAYOUT[k].id);
+    out.splice(at + 1, 0, { ...d });
+    seen.add(d.id);
+  });
   return out;
 }
 

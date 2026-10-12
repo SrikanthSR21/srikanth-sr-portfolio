@@ -2,6 +2,7 @@ import { useContent } from '../context/ContentContext';
 import React, { useState } from 'react';
 import { AdCampaignItem, FontPairOption } from '../types';
 import { TrendingUp, BarChart3, CheckCircle2 } from 'lucide-react';
+import { SectionHeading } from './SectionHeading';
 
 interface AdvertisingPortfolioProps {
   campaigns: AdCampaignItem[];
@@ -29,21 +30,8 @@ export const AdvertisingPortfolio: React.FC<AdvertisingPortfolioProps> = ({
   return (
     <section id="advertising" className="py-16 sm:py-24 px-5 sm:px-6 border-b border-white/10 relative">
       <div className="max-w-7xl mx-auto">
-        {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 sm:gap-6 mb-10 sm:mb-12">
-          <div className="min-w-0">
-            <div className="text-xs font-mono-code uppercase tracking-widest text-zinc-400 mb-2">
-              {t('ads.eyebrow')}
-            </div>
-            <h2
-              className={`text-3xl sm:text-4xl md:text-5xl font-black text-white uppercase tracking-tight break-words ${fontPair.headlineClass}`}
-            >
-              {t('ads.title')}
-            </h2>
-            {t('ads.subtitle') && <p className="mt-3 text-sm font-mono-code text-zinc-400 max-w-2xl">{t('ads.subtitle')}</p>}
-          </div>
-
-          {/* Interactive Filter Tabs (Segmented control) */}
+        <SectionHeading id="advertising" eyebrow={t('ads.eyebrow')} title={t('ads.title')} subtitle={t('ads.subtitle')} fontPair={fontPair} className="mb-10 sm:mb-12"
+          aside={(
           <div role="group" aria-label="Filter work by type" className="flex items-center gap-1 p-1 bg-zinc-950 rounded-xl border border-white/15 overflow-x-auto max-w-full">
             {filters.map((filterKey) => (
               <button
@@ -60,7 +48,7 @@ export const AdvertisingPortfolio: React.FC<AdvertisingPortfolioProps> = ({
               </button>
             ))}
           </div>
-        </div>
+          )} />
 
         {/* Adaptive Cards Grid (Scenario A with Screenshot vs Scenario B purely White Text on Black) */}
         {filteredCampaigns.length === 0 && <p className="text-sm font-mono-code text-zinc-500">No work to show for this filter yet.</p>}
@@ -68,7 +56,7 @@ export const AdvertisingPortfolio: React.FC<AdvertisingPortfolioProps> = ({
           {filteredCampaigns.map((camp) => (
             <div
               key={camp.id}
-              className="group relative flex flex-col justify-between min-w-0 rounded-[20px] bg-black border border-white/15 overflow-hidden transition-all duration-300 hover:border-white hover:scale-[1.01] hover:shadow-[0_0_30px_rgb(var(--fg-rgb)/0.14)]"
+              className="group relative flex flex-col justify-between min-w-0 rounded-[var(--radius-card,20px)] bg-black border border-white/15 overflow-hidden transition-all duration-300 hover:border-white hover:scale-[1.01] hover:shadow-[0_0_30px_rgb(var(--fg-rgb)/0.14)]"
             >
               {/* SCENARIO A: Screenshot Available */}
               {camp.hasScreenshot && camp.screenshotImage ? (
@@ -97,7 +85,7 @@ export const AdvertisingPortfolio: React.FC<AdvertisingPortfolioProps> = ({
                         {camp.clientBrand}
                       </div>
                       <h3
-                        className={`text-xl sm:text-2xl font-bold text-white uppercase tracking-tight mb-2 break-words ${fontPair.headlineClass}`}
+                        className={`card-heading text-xl sm:text-2xl font-bold text-white uppercase tracking-tight mb-2 break-words ${fontPair.headlineClass}`}
                       >
                         {camp.title}
                       </h3>
@@ -140,7 +128,7 @@ export const AdvertisingPortfolio: React.FC<AdvertisingPortfolioProps> = ({
                     </div>
 
                     <h3
-                      className={`text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white uppercase tracking-tight mb-4 break-words ${fontPair.headlineClass}`}
+                      className={`card-heading text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white uppercase tracking-tight mb-4 break-words ${fontPair.headlineClass}`}
                     >
                       {camp.title}
                     </h3>

@@ -71,6 +71,15 @@ export interface ExperienceItem {
   isCurrent?: boolean;
   summary: string;
   achievements: string[];
+  /** Optional picture for the card: company logo, branding or work photo. Nothing is shown when empty. */
+  image?: string;
+  /** Alt text for the image (falls back to "<company> <role>") */
+  imageAlt?: string;
+  imagePosition?: 'right' | 'left' | 'top' | 'bottom';
+  imageSize?: 'sm' | 'md' | 'lg';
+  /** contain = whole image visible (logos); cover = fills the frame (photos) */
+  imageFit?: 'contain' | 'cover';
+  imageCaption?: string;
 }
 
 export interface TicketItem {

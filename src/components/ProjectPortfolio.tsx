@@ -2,6 +2,7 @@ import { useContent } from '../context/ContentContext';
 import React, { useEffect, useState } from 'react';
 import { ProjectItem, FontPairOption } from '../types';
 import { ArrowUpRight, ExternalLink, Github, Globe, Smartphone, Monitor, X } from 'lucide-react';
+import { SectionHeading } from './SectionHeading';
 
 const withProtocol = (u: string) => (/^https?:\/\//i.test(u) ? u : `https://${u}`);
 const hostOf = (u: string, fallbackTitle: string) => {
@@ -33,32 +34,17 @@ export const ProjectPortfolio: React.FC<ProjectPortfolioProps> = ({
   return (
     <section id="projects" className="py-16 sm:py-24 px-5 sm:px-6 border-b border-white/10 relative">
       <div className="max-w-7xl mx-auto">
-        {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10 sm:mb-16">
-          <div className="min-w-0">
-            <div className="text-xs font-mono-code uppercase tracking-widest text-zinc-400 mb-2">
-              {t('projects.eyebrow')}
-            </div>
-            <h2
-              className={`text-3xl sm:text-4xl md:text-5xl font-black text-white uppercase tracking-tight break-words ${fontPair.headlineClass}`}
-            >
-              {t('projects.title')}
-            </h2>
-          </div>
-          {t('projects.subtitle') && (
-            <div className="text-xs font-mono-code text-zinc-400 max-w-xs sm:text-right">{t('projects.subtitle')}</div>
-          )}
-        </div>
+        <SectionHeading id="projects" eyebrow={t('projects.eyebrow')} title={t('projects.title')} subtitle={t('projects.subtitle')} subtitlePlacement="side" fontPair={fontPair} className="mb-10 sm:mb-16" />
 
         {/* Live Card Gallery Grid */}
         {visibleProjects.length === 0 && (
           <p className="text-sm font-mono-code text-zinc-500">No projects to show yet.</p>
         )}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 lg:gap-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 lg:gap-7 items-stretch">
           {visibleProjects.map((project) => (
             <div
               key={project.id}
-              className="group relative flex flex-col min-w-0 rounded-[20px] bg-black border border-white/15 overflow-hidden transition-all duration-500 hover:border-white hover:shadow-[0_0_35px_rgb(var(--fg-rgb)/0.18)]"
+              className="group relative flex flex-col min-w-0 rounded-[var(--radius-card,20px)] bg-black border border-white/15 overflow-hidden transition-all duration-500 hover:border-white hover:shadow-[0_0_35px_rgb(var(--fg-rgb)/0.18)]"
             >
               {/* TOP 2/3 CONTAINER: High-Resolution Colorful Live Hero Preview */}
               <div className="relative aspect-[16/10] w-full overflow-hidden bg-zinc-950 border-b border-white/10">
@@ -72,7 +58,7 @@ export const ProjectPortfolio: React.FC<ProjectPortfolioProps> = ({
                   <div className="text-[10px] font-mono-code text-zinc-400 truncate min-w-0 flex-1 mx-2 text-center">
                     {hostOf(project.liveUrl, project.title)}
                   </div>
-                  <div className="text-[10px] text-zinc-500 font-mono-code">2026</div>
+                  <div className="text-[10px] text-zinc-500 font-mono-code tabular-nums">{project.year}</div>
                 </div>
 
                 {/* Colorful Hero Image */}
@@ -94,11 +80,11 @@ export const ProjectPortfolio: React.FC<ProjectPortfolioProps> = ({
               </div>
 
               {/* BOTTOM 1/3 CONTAINER: Pure White Text on Black Background */}
-              <div className="p-6 sm:p-7 flex flex-col justify-between flex-grow bg-black">
+              <div className="p-5 sm:p-6 flex flex-col justify-between flex-grow bg-black">
                 <div>
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <h3
-                      className={`min-w-0 break-words text-xl sm:text-2xl font-bold text-white uppercase tracking-tight group-hover:text-zinc-100 transition-colors ${fontPair.headlineClass}`}
+                      className={`card-heading min-w-0 break-words text-lg sm:text-xl font-bold text-white uppercase tracking-tight group-hover:text-zinc-100 transition-colors ${fontPair.headlineClass}`}
                     >
                       {project.title}
                     </h3>
@@ -145,7 +131,7 @@ export const ProjectPortfolio: React.FC<ProjectPortfolioProps> = ({
       {/* Interactive Website Live Modal / Drawer */}
       {activeModalProject && (
         <div role="dialog" aria-modal="true" aria-label={`${activeModalProject.title} details`} onClick={(e) => { if (e.target === e.currentTarget) setActiveModalProject(null); }} className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/90 backdrop-blur-xl">
-          <div className="relative w-full max-w-5xl max-h-[92dvh] flex flex-col bg-zinc-950 border border-white/20 rounded-[20px] shadow-2xl overflow-hidden">
+          <div className="relative w-full max-w-5xl max-h-[92dvh] flex flex-col bg-zinc-950 border border-white/20 rounded-[var(--radius-card,20px)] shadow-2xl overflow-hidden">
             {/* Modal Header Bar */}
             <div className="px-4 sm:px-6 py-3 sm:py-4 bg-black border-b border-white/15 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
