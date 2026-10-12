@@ -75,7 +75,8 @@ export const BrandingSection: React.FC<BrandingSectionProps> = ({
   workExperience,
   fontPair,
 }) => {
-  const { t, settings: { clients: CLIENT_LOGOS } } = useContent();
+  const { t, settings: { clients: CLIENT_LOGOS, texts } } = useContent();
+  const frameLogo = texts['branding.frameLogo']?.trim();
   return (
     <section id="branding" className="py-16 sm:py-24 px-5 sm:px-6 border-b border-white/10 relative overflow-hidden">
       <div className="max-w-7xl mx-auto">
@@ -100,10 +101,18 @@ export const BrandingSection: React.FC<BrandingSectionProps> = ({
                   key={index}
                   className="flex items-center gap-3 px-6 py-3.5 rounded-2xl bg-zinc-950/80 border border-white/15 hover:border-white transition-all group shrink-0"
                 >
-                  {/* Minimalist white monogram badge */}
-                  <div className="w-8 h-8 rounded-lg bg-black border border-white/30 flex items-center justify-center text-xs font-mono-code font-bold text-white group-hover:bg-white group-hover:text-black transition-colors">
-                    {logo.symbol}
-                  </div>
+                  {logo.logo?.trim() ? (
+                    /* Optional logo image: fixed 32px frame so the ticker never shifts while images load */
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden shrink-0 ${logo.logoBg === 'dark' ? 'bg-black border border-white/30' : logo.logoBg === 'none' ? '' : 'bg-white'}`}>
+                      <img src={logo.logo} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer"
+                        className={`w-full h-full object-contain ${logo.logoBg === 'none' ? '' : 'p-1'}`} />
+                    </div>
+                  ) : (
+                    /* Minimalist white monogram badge */
+                    <div className="w-8 h-8 rounded-lg bg-black border border-white/30 flex items-center justify-center text-xs font-mono-code font-bold text-white group-hover:bg-white group-hover:text-black transition-colors">
+                      {logo.symbol}
+                    </div>
+                  )}
                   <span className="text-sm font-bold tracking-widest text-white/90 group-hover:text-white uppercase font-mono-code">
                     {logo.name}
                   </span>
@@ -129,8 +138,12 @@ export const BrandingSection: React.FC<BrandingSectionProps> = ({
               <div className="absolute bottom-4 right-4 text-[10px] font-mono-code text-zinc-500">+</div>
 
               {/* Glowing center emblem */}
-              <div className="w-24 h-24 rounded-2xl bg-black border-2 border-white flex items-center justify-center mb-6 shadow-[0_0_30px_rgb(var(--fg-rgb)/0.2)]">
-                <Zap className="w-12 h-12 text-white" />
+              <div className="w-24 h-24 rounded-2xl bg-black border-2 border-white flex items-center justify-center mb-6 shadow-[0_0_30px_rgb(var(--fg-rgb)/0.2)] overflow-hidden">
+                {frameLogo ? (
+                  <img src={frameLogo} alt={t('branding.frameTitle')} decoding="async" referrerPolicy="no-referrer" className="w-full h-full object-contain p-3" />
+                ) : (
+                  <Zap className="w-12 h-12 text-white" />
+                )}
               </div>
 
               {/* Large prominent text: CYBERFIX */}

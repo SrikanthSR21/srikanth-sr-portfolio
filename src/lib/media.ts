@@ -329,7 +329,7 @@ const AREA_NAMES: Record<string, string> = {
   projects: 'Project', ad_campaigns: 'Advertising campaign', experience: 'Work experience',
 };
 const FIELD_NAMES: Record<string, string> = {
-  heroImage: 'preview image', screenshotImage: 'screenshot', image: 'image', profile: 'portrait', resumeUrl: 'CV file', icon: 'icon',
+  heroImage: 'preview image', screenshotImage: 'screenshot', image: 'image', logo: 'logo', 'branding.frameLogo': 'CYBERFIX emblem', profile: 'portrait', resumeUrl: 'CV file', icon: 'icon',
 };
 
 export type ContentSnapshot = Record<string, unknown>; // e.g. { info, images, skills, projects, ad_campaigns, experience, … }
@@ -354,7 +354,12 @@ export function collectReferences(content: ContentSnapshot): Map<string, MediaRe
     }
   };
   for (const [key, value] of Object.entries(content)) {
-    if (key === 'texts' || key === 'theme') continue;
+    if (key === 'theme') continue;
+    if (key === 'texts') { // only the CYBERFIX emblem is an image; every other text is plain words
+      const logo = (value as Record<string, unknown> | undefined)?.['branding.frameLogo'];
+      if (typeof logo === 'string') add(logo, 'Brand ticker', 'CYBERFIX frame', 'branding.frameLogo');
+      continue;
+    }
     walk(value, AREA_NAMES[key] ?? key, '', key);
   }
   return map;

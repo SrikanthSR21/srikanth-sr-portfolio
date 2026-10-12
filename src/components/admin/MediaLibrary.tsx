@@ -279,7 +279,7 @@ export const MediaBrowser: React.FC<BrowserProps> = ({ mode, onPick, defaultCate
       const { asset: fresh, meta } = await uploadAsset(file, { category: asset.category, alt: asset.alt });
       const key = assetKey(asset);
       let changedAreas = 0;
-      for (const k of ['info', 'images', 'clients', 'skills', 'hero_metrics'] as const) {
+      for (const k of ['info', 'images', 'clients', 'skills', 'hero_metrics', 'texts'] as const) {
         const [next, changed] = replaceAssetUrl((content.settings as any)[k], key, fresh.url);
         if (!changed) continue;
         const withDims = k === 'images' && (next as any).profile === fresh.url && meta ? { ...next, profileWidth: meta.width, profileHeight: meta.height, profileTransparent: meta.hasAlpha } : next;

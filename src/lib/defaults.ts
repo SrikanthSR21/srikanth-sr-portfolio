@@ -12,7 +12,13 @@ export interface NavItem {
   visible: boolean;
 }
 export interface HeroMetric { id: string; value: string; label: string }
-export interface ClientLogo { id: string; name: string; symbol: string }
+export interface ClientLogo {
+  id: string; name: string; symbol: string;
+  /** Optional small logo image. When set it replaces the monogram badge in the ticker. */
+  logo?: string;
+  /** Badge behind the logo: light (default, works for dark logos), dark (for white logos) or none (transparent). */
+  logoBg?: 'light' | 'dark' | 'none';
+}
 export interface SiteImages {
   profile: string;
   /** Set by the uploader when the portrait has a transparent background */

@@ -23,7 +23,9 @@ const METRIC_FIELDS: Field[] = [
 ];
 const CLIENT_FIELDS: Field[] = [
   { key: 'name', label: 'Brand name', type: 'text' },
-  { key: 'symbol', label: '2-letter monogram', type: 'text' },
+  { key: 'symbol', label: '2-letter monogram', type: 'text', hint: 'Shown when no logo image is added.' },
+  { key: 'logo', label: 'Logo image (optional, small)', type: 'image', folder: 'brands', optional: true, hint: 'Replaces the monogram in the ticker. Square or wide logos both work; transparent PNG/SVG recommended.' },
+  { key: 'logoBg', label: 'Logo badge background', type: 'select', options: ['light', 'dark', 'none'], showIf: (it: any) => !!it.logo, hint: 'light = white badge (for dark logos) · dark = black badge (for white logos) · none = transparent' },
 ];
 const PROJECT_FIELDS: Field[] = [
   { key: 'visible', label: 'Show on the public site', type: 'bool' },
@@ -107,6 +109,23 @@ const TextsEditor: React.FC = () => {
           ))}
         </fieldset>
       ))}
+    </div>
+  );
+};
+
+/** Optional picture for the square emblem in the CYBERFIX frame (replaces the lightning icon). Stored with the site texts, no database change needed. */
+const FRAME_LOGO_KEY = 'branding.frameLogo';
+const FrameEmblemEditor: React.FC = () => {
+  const c = useContent();
+  const saved = c.settings.texts[FRAME_LOGO_KEY] ?? '';
+  const { draft, setDraft, dirty, discard } = useDraft<string>(saved);
+  const { state, run } = useSaver();
+  return (
+    <div className="space-y-3 max-w-2xl">
+      <SaveBar title="CYBERFIX frame emblem" dirty={dirty} state={state} onDiscard={discard}
+        onSave={() => run(() => c.saveSetting('texts', { ...c.settings.texts, [FRAME_LOGO_KEY]: draft.trim() }))} />
+      <p className="text-xs text-zinc-500">The square badge at the top of the CYBERFIX frame. Add an image to replace the lightning icon; remove it to bring the icon back.</p>
+      <ImageUploader value={draft} folder="brands" allowClear onChange={(url) => setDraft(url)} />
     </div>
   );
 };
@@ -222,6 +241,7 @@ export const ContentAdmin: React.FC<{ tab: ContentTab }> = ({ tab }) => {
           blank={() => ({ id: uid('c'), name: 'NEW BRAND', symbol: 'NB' })}
           onSave={(items) => c.saveSetting('clients', items)} />
       )}
+      {tab === 'Brands' && <div className="pt-6 mt-6 border-t border-white/10"><FrameEmblemEditor /></div>}
       {tab === 'Images' && <ImagesEditor />}
       {tab === 'Contact form' && <ContactFormEditor />}
       {tab === 'Setup' && (
