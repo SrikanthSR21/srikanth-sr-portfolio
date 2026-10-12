@@ -1,0 +1,199 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    --bg-color: #000000;
+    --text-color: #ffffff;
+    --card-bg: #09090b;
+    --card-border: rgba(255, 255, 255, 0.12);
+    --accent-btn: #ffffff;
+    --accent-btn-text: #000000;
+    /* RGB triplet of the foreground colour: lets glows/grid lines follow the theme: rgb(var(--fg-rgb) / .2) */
+    --fg-rgb: 255 255 255;
+    --scroll-thumb: #27272a;
+    --scroll-thumb-hover: #52525b;
+  }
+
+  /*
+   * LIGHT MODE (visitor toggle).
+   * Every black/white/grey in the UI is a Tailwind colour utility, and Tailwind 4 compiles those to
+   * `var(--color-*)`. Re-pointing the monochrome variables here flips the whole monochrome UI
+   * (backgrounds, text, borders, cards, buttons) without touching photos, screenshots, logos or the
+   * red/green/yellow accents. No `filter: invert()` is used anywhere.
+   */
+  :root[data-theme='light'] {
+    color-scheme: light;
+    --bg-color: #ffffff;
+    --text-color: #0a0a0a;
+    --card-bg: #f4f4f5;
+    --card-border: rgba(10, 10, 10, 0.14);
+    --accent-btn: #0a0a0a;
+    --accent-btn-text: #ffffff;
+    --fg-rgb: 10 10 10;
+    --scroll-thumb: #d4d4d8;
+    --scroll-thumb-hover: #a1a1aa;
+
+    --color-white: #0a0a0a;
+    --color-black: #ffffff;
+    --color-zinc-50: #09090b;
+    --color-zinc-100: #18181b;
+    --color-zinc-200: #27272a;
+    --color-zinc-300: #3f3f46;
+    --color-zinc-400: #52525b;
+    --color-zinc-500: #6b6b76;
+    --color-zinc-600: #8a8a94;
+    --color-zinc-700: #c4c4cc;
+    --color-zinc-800: #e4e4e7;
+    --color-zinc-900: #f0f0f2;
+    --color-zinc-950: #f8f8f9;
+  }
+
+  html {
+    /* sticky header is 4.5rem tall: anchor jumps must not hide section titles under it */
+    scroll-padding-top: 4.75rem;
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    /* Safety net only: the individual overflowing elements are fixed in their components. `clip`
+       (unlike `hidden`) does not create a scroll container, so position: sticky keeps working. */
+    overflow-x: clip;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  img, video, svg { max-width: 100%; }
+
+  ::selection {
+    background-color: var(--text-color);
+    color: var(--bg-color);
+  }
+
+  /* Visible keyboard focus everywhere */
+  :focus-visible {
+    outline: 2px solid var(--text-color);
+    outline-offset: 2px;
+  }
+
+  /* Custom minimal scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg-color); }
+  ::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 9999px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--scroll-thumb-hover); }
+}
+
+/* Smooth colour change when the visitor flips the theme (class is added for ~0.4s by colorMode.ts) */
+html.theme-switching,
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, fill 0.3s ease !important;
+}
+
+/* Transparent-image preview (admin) */
+.checkerboard {
+  background-color: #fff;
+  background-image:
+    linear-gradient(45deg, #d4d4d8 25%, transparent 25%, transparent 75%, #d4d4d8 75%),
+    linear-gradient(45deg, #d4d4d8 25%, transparent 25%, transparent 75%, #d4d4d8 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 8px 8px;
+}
+
+/* Typography styles */
+.font-anton {
+  font-family: 'Anton', sans-serif;
+  letter-spacing: 0.04em;
+}
+
+.font-syne {
+  font-family: 'Syne', sans-serif;
+}
+
+.font-jakarta {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.font-mono-code {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.font-space {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.font-cinzel {
+  font-family: 'Cinzel', serif;
+}
+
+/* Animations */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes marquee-reverse {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: 200%;
+  animation: marquee 28s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+@keyframes pulse-subtle {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgb(var(--fg-rgb) / 0.25), 0 0 25px rgb(var(--fg-rgb) / 0.08);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgb(var(--fg-rgb) / 0), 0 0 45px rgb(var(--fg-rgb) / 0.18);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-subtle 3.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes ripple-circle {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.2;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+.animate-ripple {
+  animation: ripple-circle 4s ease-out infinite;
+}
+
+/* Respect reduced motion: stop decorative loops and smooth scrolling */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .animate-marquee, .animate-pulse-glow, .animate-ripple { animation: none !important; }
+  .animate-bounce, .animate-ping, .animate-pulse { animation: none !important; }
+  *, *::before, *::after { transition-duration: 0.01ms !important; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}

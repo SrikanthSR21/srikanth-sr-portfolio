@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark light" />
+    <script>
+      /* Apply the visitor's theme before first paint (no flash). Admin always stays dark. */
+      (function () {
+        try {
+          var root = document.documentElement;
+          if (/^\/admin\/?$/.test(location.pathname)) { root.setAttribute('data-theme', 'dark'); return; }
+          var stored = localStorage.getItem('site_color_mode');
+          var mode = stored === 'light' || stored === 'dark' ? stored : null;
+          if (!mode) {
+            var d = (JSON.parse(localStorage.getItem('site_theme_cache') || '{}') || {}).defaultMode;
+            mode = d === 'light' ? 'light'
+              : d === 'system' ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : 'dark';
+          }
+          root.setAttribute('data-theme', mode);
+        } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
+      })();
+    </script>
+    <title>Morgan Maxwell | Creative Developer & Ads Strategist Portfolio</title>
+    <meta name="description" content="Ultra-minimalist, sleek black & white portfolio featuring live project cards, advertising case studies, CyberBix branding, interactive developer admin panel, and direct WhatsApp routing." />
+    <meta property="og:title" content="Morgan Maxwell | Creative Developer & Ads Strategist Portfolio" />
+    <meta property="og:description" content="Ultra-minimalist, sleek black & white portfolio featuring live project cards, advertising case studies, CyberBix branding, interactive developer admin panel, and direct WhatsApp routing." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@500;700;800&family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
