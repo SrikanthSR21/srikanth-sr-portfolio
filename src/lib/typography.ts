@@ -24,12 +24,13 @@ export interface SectionTypography {
 //   soft    = barely lifted from the page background   (dark mode: charcoal   | light mode: soft white)
 //   mid     = a clear grey band                        (dark mode: graphite   | light mode: light grey)
 //   inverse = the opposite palette, text flips too     (dark mode: white band | light mode: black band)
-export type Tone = 'none' | 'soft' | 'mid' | 'inverse';
+export type Tone = 'none' | 'soft' | 'mid' | 'inverse' | 'custom';
 export const TONES: { id: Tone; label: string; hint: string }[] = [
   { id: 'none', label: 'Page background', hint: 'No band (original look)' },
   { id: 'soft', label: 'Soft', hint: 'Charcoal / soft white' },
   { id: 'mid', label: 'Grey', hint: 'Graphite / light grey' },
   { id: 'inverse', label: 'Contrast', hint: 'White band in dark mode, black in light' },
+  { id: 'custom', label: 'Custom', hint: 'Pick your own colour for dark and light mode' },
 ];
 /** What each tone looks like in each mode (used by the admin swatches; the real colours live in index.css) */
 export const TONE_SWATCH: Record<Tone, { dark: [string, string]; light: [string, string] }> = {
@@ -37,7 +38,11 @@ export const TONE_SWATCH: Record<Tone, { dark: [string, string]; light: [string,
   soft: { dark: ['#0e0e11', '#ffffff'], light: ['#f6f6f7', '#0a0a0a'] },
   mid: { dark: ['#1c1c20', '#ffffff'], light: ['#e8e8ec', '#0a0a0a'] },
   inverse: { dark: ['#ffffff', '#0a0a0a'], light: ['#0a0a0a', '#fafafa'] },
+  custom: { dark: ['#1c1c20', '#ffffff'], light: ['#e8e8ec', '#0a0a0a'] }, // placeholder: the admin shows the section's own colours
 };
+/** A custom band: its own background colour in dark mode and in light mode (full #rrggbb). Text and cards flip automatically for contrast. */
+export interface CustomBand { dark: string; light: string }
+export type SectionCustom = Partial<Record<SectionId, CustomBand>>;
 export type SectionTones = Partial<Record<SectionId, Tone>>;
 /** Shipped by default: black hero, then grey / black / white bands so the sections are easy to tell apart. */
 export const DEFAULT_SECTION_TONES: SectionTones = { hero: 'none', about: 'mid', skills: 'none', projects: 'soft', advertising: 'inverse', branding: 'none', contact: 'mid', footer: 'none' };
@@ -119,6 +124,8 @@ export interface TypographySettings {
   perSection: Partial<Record<SectionId, SectionTypography>>;
   /** Background band per section (follows dark / light mode) */
   sectionTone: SectionTones;
+  /** Colours for sections whose tone is 'custom' */
+  sectionCustom: SectionCustom;
   /** flat = solid band; fade = band melts into the page background towards the bottom */
   toneStyle: 'flat' | 'fade';
   metricCards: MetricCardSettings;
@@ -136,7 +143,7 @@ export const DEFAULT_TYPOGRAPHY: TypographySettings = {
   underline: 'none', underlineWidth: 'short', highlightStyle: 'accent',
   cardFont: 'theme', cardWeight: 0, cardSize: 'default', cardColor: 'default',
   radius: 20, perSection: {},
-  sectionTone: DEFAULT_SECTION_TONES, toneStyle: 'flat', metricCards: DEFAULT_METRIC_CARDS, roles: {}, baseScale: 100,
+  sectionTone: DEFAULT_SECTION_TONES, sectionCustom: {}, toneStyle: 'flat', metricCards: DEFAULT_METRIC_CARDS, roles: {}, baseScale: 100,
 };
 
 export interface FontOption { id: string; label: string; stack: string; /** Google Fonts family spec. Absent = already loaded by index.html (or a system font) */ google?: string; group: 'Current site fonts' | 'Sans-serif' | 'Serif' | 'Display' | 'Monospace' }
@@ -194,12 +201,20 @@ const num = (v: unknown, lo: number, hi: number, fb: number) => { const n = Numb
 const WEIGHTS = [0, 400, 500, 600, 700, 800, 900];
 const FONT_IDS = FONT_OPTIONS.map((f) => f.id);
 
-const TONE_IDS: Tone[] = ['none', 'soft', 'mid', 'inverse'];
+const TONE_IDS: Tone[] = ['none', 'soft', 'mid', 'inverse', 'custom'];
 /** No saved value yet (older save) = the shipped default bands. Saved but a section missing = no band for it. */
 function normalizeTones(raw: unknown): SectionTones {
   if (!raw || typeof raw !== 'object') return { ...DEFAULT_SECTION_TONES };
   const out: SectionTones = {};
   for (const [k, v] of Object.entries<any>(raw as Record<string, any>)) if (TONE_IDS.includes(v)) out[k as SectionId] = v;
+  return out;
+}
+function normalizeCustom(raw: unknown): SectionCustom {
+  const out: SectionCustom = {};
+  if (!raw || typeof raw !== 'object') return out;
+  for (const [k, v] of Object.entries<any>(raw as Record<string, any>)) {
+    if (v && typeof v === 'object' && HEX.test(v.dark) && HEX.test(v.light)) out[k as SectionId] = { dark: v.dark.toLowerCase(), light: v.light.toLowerCase() };
+  }
   return out;
 }
 function normalizeMetricCards(raw: unknown): MetricCardSettings {
@@ -245,6 +260,10 @@ export function normalizeTypography(raw: unknown): TypographySettings {
     }
   }
   const w = Number(r.headingWeight), cw = Number(r.cardWeight);
+  const sectionCustom = normalizeCustom(r.sectionCustom);
+  const sectionTone = normalizeTones(r.sectionTone);
+  // a 'custom' tone without usable colours falls back to the plain page background
+  for (const k of Object.keys(sectionTone) as SectionId[]) if (sectionTone[k] === 'custom' && !sectionCustom[k]) delete sectionTone[k];
   return {
     headingFont: pick(r.headingFont, FONT_IDS, d.headingFont),
     headingWeight: WEIGHTS.includes(w) ? w : 0,
@@ -262,7 +281,7 @@ export function normalizeTypography(raw: unknown): TypographySettings {
     cardColor: pick(r.cardColor, ['default', 'accent'] as const, 'default'),
     radius: num(r.radius, 0, 40, d.radius),
     perSection,
-    sectionTone: normalizeTones(r.sectionTone),
+    sectionTone, sectionCustom,
     toneStyle: pick(r.toneStyle, ['flat', 'fade'] as const, 'flat'),
     metricCards: normalizeMetricCards(r.metricCards),
     roles: normalizeRoles(r.roles),
@@ -363,6 +382,46 @@ export function rolesToCss(t: TypographySettings, scope: string = ':root', mode:
   return out.join('\n');
 }
 
+// ---- Custom section backgrounds ------------------------------------------------------------------------------------
+// The two palettes the site already uses (same values as index.css). A custom band picks one of them from its own colour,
+// so every text / border / card colour inside the band stays readable whatever colour was chosen.
+const PAL_DARK = "color-scheme:dark;--text-color:#fafafa;--card-bg:#09090b;--card-border:rgba(255,255,255,.12);--accent-btn:#ffffff;--accent-btn-text:#000000;--fg-rgb:255 255 255;--color-white:#ffffff;--color-black:#000000;--color-zinc-50:#fafafa;--color-zinc-100:#f4f4f5;--color-zinc-200:#e4e4e7;--color-zinc-300:#d4d4d8;--color-zinc-400:#9f9fa9;--color-zinc-500:#71717b;--color-zinc-600:#52525c;--color-zinc-700:#3f3f47;--color-zinc-800:#27272a;--color-zinc-900:#18181b;--color-zinc-950:#09090b;";
+const PAL_LIGHT = "color-scheme:light;--text-color:#0a0a0a;--card-bg:#f4f4f5;--card-border:rgba(10,10,10,.14);--accent-btn:#0a0a0a;--accent-btn-text:#ffffff;--fg-rgb:10 10 10;--color-white:#0a0a0a;--color-black:#ffffff;--color-zinc-50:#09090b;--color-zinc-100:#18181b;--color-zinc-200:#27272a;--color-zinc-300:#3f3f46;--color-zinc-400:#52525b;--color-zinc-500:#6b6b76;--color-zinc-600:#8a8a94;--color-zinc-700:#c4c4cc;--color-zinc-800:#e4e4e7;--color-zinc-900:#f0f0f2;--color-zinc-950:#f8f8f9;";
+
+/** Which text palette is readable on this background: 'light' = white-ish text, 'dark' = black-ish text */
+export function bandFg(bg: string): 'light' | 'dark' {
+  return contrastRatio(bg, '#fafafa') >= contrastRatio(bg, '#0a0a0a') ? 'light' : 'dark';
+}
+
+/** CSS for every section whose tone is 'custom'. Scoped by theme, so dark and light mode each get their own colour. */
+export function customBandsCss(t: TypographySettings): string {
+  const out: string[] = [];
+  const dk = ":root:not([data-theme='light'])", lt = ":root[data-theme='light']";
+  for (const id of Object.keys(t.sectionCustom) as SectionId[]) {
+    const c = t.sectionCustom[id];
+    if (!c || t.sectionTone[id] !== 'custom') continue;
+    for (const [mode, hexv] of [['dark', c.dark], ['light', c.light]] as const) {
+      const pref = mode === 'dark' ? dk : lt;
+      const fg = bandFg(hexv);
+      const sel = `${pref} [data-tone='custom'][data-tone-id='${id}']`;
+      // fade only when the band shares the page's light/dark side; otherwise the band stays solid so text never sits on the wrong colour
+      const fade = t.toneStyle === 'fade' && ((mode === 'dark' && fg === 'light') || (mode === 'light' && fg === 'dark'));
+      out.push(`${sel}{background-color:${hexv};color:${fg === 'light' ? '#fafafa' : '#0a0a0a'};--bg-color:${hexv};${fg === 'light' ? PAL_DARK : PAL_LIGHT}${fade ? `background-image:linear-gradient(180deg,${hexv} 0%,var(--page-bg) 100%);` : ''}}`);
+      // custom text colours are per mode: where the band flips the palette, use the colour made for the other mode
+      const flipped = (mode === 'dark' && fg === 'dark') || (mode === 'light' && fg === 'light');
+      if (!flipped) continue;
+      for (const def of ROLES) {
+        const r = roleStyle(t, def.id);
+        if (!r.colorD && !r.colorL) continue;
+        const guard = def.id === 'secHeading' ? ":not([data-hc='gradient'])" : '';
+        const want = mode === 'dark' ? r.colorL : r.colorD;
+        out.push(`${sel} ${def.selector}${guard}{color:${want || 'revert-layer'}}`);
+      }
+    }
+  }
+  return out.join('\n');
+}
+
 const STYLE_ID = 'site-typography-roles';
 
 export function applyTypography(el: HTMLElement, t: TypographySettings) {
@@ -374,7 +433,7 @@ export function applyTypography(el: HTMLElement, t: TypographySettings) {
   ensureFontsFor(t);
   let style = document.getElementById(STYLE_ID) as HTMLStyleElement | null;
   if (!style) { style = document.createElement('style'); style.id = STYLE_ID; document.head.appendChild(style); }
-  style.textContent = rolesToCss(t);
+  style.textContent = rolesToCss(t) + '\n' + customBandsCss(t);
 }
 
 /** Per-heading attributes (colour mode / underline / highlight) resolved from the global + per-section settings. */

@@ -262,7 +262,7 @@ mark.hl { background: none; color: inherit; }
    "inverse" re-points the same colour variables the light theme uses (see the top of this file),
    so every text, border and card colour inside the band flips with it: no unreadable text.
    ------------------------------------------------------------------------------------------ */
-:root { --tone-soft: #0e0e11; --tone-mid: #1c1c20; }
+:root { --tone-soft: #0e0e11; --tone-mid: #1c1c20; --page-bg: var(--bg-color); } /* --page-bg keeps the real page colour visible inside a band that re-points --bg-color */
 :root[data-theme='light'] { --tone-soft: #f6f6f7; --tone-mid: #e8e8ec; }
 
 [data-tone='soft'] { background-color: var(--tone-soft); }

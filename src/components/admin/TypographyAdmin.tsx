@@ -25,8 +25,9 @@ export const TypographyAdmin: React.FC = () => {
   const set = <K extends keyof TypographySettings>(k: K, v: TypographySettings[K]) => setDraft((d) => ({ ...d, [k]: v }));
   const setSection = (id: SectionId, p: Partial<typeof DEFAULT_SECTION_TYPO>) => setDraft((d) => ({ ...d, perSection: { ...d.perSection, [id]: { ...sectionTypo(d, id), ...p } } }));
   const validHex = (h: string) => /^#[0-9a-f]{6}$/i.test(h);
-  const bad = !validHex(draft.accent) || !validHex(draft.gradientFrom) || !validHex(draft.gradientTo);
-  const save = () => run(async () => { if (bad) throw new Error('Colours must be full hex values like #7c9cff.'); await saveSetting('typography', draft); });
+  const customBad = Object.entries(draft.sectionCustom).some(([id, c]) => draft.sectionTone[id as SectionId] === 'custom' && c && (!validHex(c.dark) || !validHex(c.light)));
+  const bad = !validHex(draft.accent) || !validHex(draft.gradientFrom) || !validHex(draft.gradientTo) || customBad;
+  const save = () => run(async () => { if (bad) throw new Error(customBad ? 'Every custom section colour must be a full hex value like #1c1c20.' : 'Colours must be full hex values like #7c9cff.'); await saveSetting('typography', draft); });
   const reset = () => { if (confirm('Reset all typography and highlight settings to the original design? Press Save to apply.')) setDraft(DEFAULT_TYPOGRAPHY); };
 
   const { attrs, vars } = useMemo(() => typographyToDom(bad ? { ...draft, accent: validHex(draft.accent) ? draft.accent : '#7c9cff', gradientFrom: validHex(draft.gradientFrom) ? draft.gradientFrom : '#7c9cff', gradientTo: validHex(draft.gradientTo) ? draft.gradientTo : '#c084fc' } : draft), [draft, bad]);
