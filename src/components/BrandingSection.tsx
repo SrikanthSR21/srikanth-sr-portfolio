@@ -4,6 +4,7 @@ import { ExperienceItem, FontPairOption } from '../types';
 import { Zap } from 'lucide-react';
 import { SectionHeading } from './SectionHeading';
 import { useToneAttrs } from '../lib/tone';
+import { linkProps, parseHidden, safeHref } from '../lib/links';
 
 interface BrandingSectionProps {
   workExperience: ExperienceItem[];
@@ -72,6 +73,14 @@ const ExperienceBody: React.FC<{ exp: ExperienceItem; fontPair: FontPairOption }
   );
 };
 
+/** Makes the whole frame a link when the admin set one; otherwise just a plain wrapper. */
+const FrameWrap: React.FC<{ href: string; label: string; children: React.ReactNode }> = ({ href, label, children }) =>
+  href ? (
+    <a {...linkProps(href)} aria-label={label} className="block w-full max-w-md rounded-[28px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white cursor-pointer">{children}</a>
+  ) : (
+    <div className="w-full max-w-md">{children}</div>
+  );
+
 export const BrandingSection: React.FC<BrandingSectionProps> = ({
   workExperience,
   fontPair,
@@ -79,6 +88,10 @@ export const BrandingSection: React.FC<BrandingSectionProps> = ({
   const tone = useToneAttrs('branding');
   const { t, settings: { clients: CLIENT_LOGOS, texts } } = useContent();
   const frameLogo = texts['branding.frameLogo']?.trim();
+  const hidden = parseHidden(t('branding.frameHidden'));
+  const show = (part: string) => !hidden.has(part);
+  const showFrame = !hidden.has('frame');
+  const frameHref = safeHref(t('branding.frameLink'));
   return (
     <section id="branding" {...tone} className="py-16 sm:py-24 px-5 sm:px-6 border-b border-white/10 relative overflow-hidden">
       <div className="max-w-7xl mx-auto">
@@ -128,60 +141,77 @@ export const BrandingSection: React.FC<BrandingSectionProps> = ({
           </div>
         </div>
 
-        {/* Main Grid: CYBERFIX Pulse Frame on Left + WORK HISTORY Timeline on Right */}
+        {/* Main Grid: CYBERBIX frame on the left + WORK HISTORY timeline on the right */}
         <div id="experience" className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
-          {/* LEFT: Central large rounded-square frame labeled "CYBERFIX" with subtle continuous animated white glow or pulse */}
+          {/* LEFT: the CYBERBIX frame. Every part can be edited, hidden or linked from Admin → Brands → CYBERBIX frame. */}
+          {showFrame && (
           <div className="lg:col-span-5 min-w-0 flex flex-col items-center">
-            <div className="w-full max-w-md p-6 sm:p-10 rounded-[28px] bg-zinc-950 border-2 border-white/30 animate-pulse-glow flex flex-col items-center justify-center text-center relative overflow-hidden">
-              {/* Corner tech crosshairs */}
-              <div className="absolute top-4 left-4 text-[10px] font-mono-code text-zinc-500">+</div>
-              <div className="absolute top-4 right-4 text-[10px] font-mono-code text-zinc-500">+</div>
-              <div className="absolute bottom-4 left-4 text-[10px] font-mono-code text-zinc-500">+</div>
-              <div className="absolute bottom-4 right-4 text-[10px] font-mono-code text-zinc-500">+</div>
+            <FrameWrap href={frameHref} label={t('branding.frameTitle')}>
+              <div className={`w-full max-w-md p-6 sm:p-10 rounded-[28px] bg-zinc-950 border-2 border-white/30 animate-pulse-glow flex flex-col items-center justify-center text-center relative overflow-hidden ${frameHref ? 'hover:border-white transition-colors' : ''}`}>
+                {/* Corner tech crosshairs */}
+                <div className="absolute top-4 left-4 text-[10px] font-mono-code text-zinc-500">+</div>
+                <div className="absolute top-4 right-4 text-[10px] font-mono-code text-zinc-500">+</div>
+                <div className="absolute bottom-4 left-4 text-[10px] font-mono-code text-zinc-500">+</div>
+                <div className="absolute bottom-4 right-4 text-[10px] font-mono-code text-zinc-500">+</div>
 
-              {/* Glowing center emblem */}
-              <div className="w-24 h-24 rounded-2xl bg-black border-2 border-white flex items-center justify-center mb-6 shadow-[0_0_30px_rgb(var(--fg-rgb)/0.2)] overflow-hidden">
-                {frameLogo ? (
-                  <img src={frameLogo} alt={t('branding.frameTitle')} decoding="async" referrerPolicy="no-referrer" className="w-full h-full object-contain p-3" />
-                ) : (
-                  <Zap className="w-12 h-12 text-white" />
+                {show('emblem') && (
+                  <div className="w-24 h-24 rounded-2xl bg-black border-2 border-white flex items-center justify-center mb-6 shadow-[0_0_30px_rgb(var(--fg-rgb)/0.2)] overflow-hidden">
+                    {frameLogo ? (
+                      <img src={frameLogo} alt={t('branding.frameTitle')} decoding="async" referrerPolicy="no-referrer" className="w-full h-full object-contain p-3" />
+                    ) : (
+                      <Zap className="w-12 h-12 text-white" />
+                    )}
+                  </div>
+                )}
+
+                {show('title') && (
+                  <h3 className={`card-heading text-4xl sm:text-5xl font-black text-white tracking-widest uppercase mb-2 break-words max-w-full ${fontPair.headlineClass}`}>
+                    {t('branding.frameTitle')}
+                  </h3>
+                )}
+                {show('kicker') && (
+                  <div className="text-xs font-mono-code text-zinc-400 uppercase tracking-widest mb-6">
+                    {t('branding.frameKicker')}
+                  </div>
+                )}
+
+                {show('body') && (
+                  <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed max-w-xs mb-6">
+                    {t('branding.frameBody')}
+                  </p>
+                )}
+
+                {(show('stat1') || show('stat2')) && (
+                  <div className={`w-full pt-4 border-t border-white/15 grid gap-3 text-left ${show('stat1') && show('stat2') ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                    {show('stat1') && (
+                      <div className="min-w-0 p-3 bg-black rounded-xl border border-white/10">
+                        <div className="text-[10px] font-mono-code text-zinc-500 uppercase">{t('branding.frameStat1Label')}</div>
+                        <div className="text-base sm:text-lg font-bold text-white break-words">{t('branding.frameStat1Value')}</div>
+                      </div>
+                    )}
+                    {show('stat2') && (
+                      <div className="min-w-0 p-3 bg-black rounded-xl border border-white/10">
+                        <div className="text-[10px] font-mono-code text-zinc-500 uppercase">{t('branding.frameStat2Label')}</div>
+                        <div className="text-base sm:text-lg font-bold text-white break-words">{t('branding.frameStat2Value')}</div>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
+            </FrameWrap>
 
-              {/* Large prominent text: CYBERFIX */}
-              <h3 className={`card-heading text-4xl sm:text-5xl font-black text-white tracking-widest uppercase mb-2 break-words max-w-full ${fontPair.headlineClass}`}>
-                {t('branding.frameTitle')}
-              </h3>
-              <div className="text-xs font-mono-code text-zinc-400 uppercase tracking-widest mb-6">
-                {t('branding.frameKicker')}
+            {show('caption') && t('branding.frameCaption').trim() && (
+              <div className="mt-4 text-center">
+                <span className="text-[11px] font-mono-code text-zinc-500 uppercase tracking-wider">
+                  {t('branding.frameCaption')}
+                </span>
               </div>
-
-              <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed max-w-xs mb-6">
-                {t('branding.frameBody')}
-              </p>
-
-              {/* Live metrics inside the Cyberfix frame */}
-              <div className="w-full pt-4 border-t border-white/15 grid grid-cols-2 gap-3 text-left">
-                <div className="min-w-0 p-3 bg-black rounded-xl border border-white/10">
-                  <div className="text-[10px] font-mono-code text-zinc-500 uppercase">{t('branding.frameStat1Label')}</div>
-                  <div className="text-base sm:text-lg font-bold text-white break-words">{t('branding.frameStat1Value')}</div>
-                </div>
-                <div className="min-w-0 p-3 bg-black rounded-xl border border-white/10">
-                  <div className="text-[10px] font-mono-code text-zinc-500 uppercase">{t('branding.frameStat2Label')}</div>
-                  <div className="text-base sm:text-lg font-bold text-white break-words">{t('branding.frameStat2Value')}</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4 text-center">
-              <span className="text-[11px] font-mono-code text-zinc-500 uppercase tracking-wider">
-                Continuous white glow pulse · verified ecosystem
-              </span>
-            </div>
+            )}
           </div>
+          )}
 
           {/* RIGHT: Work Experience Vertical Timeline */}
-          <div className="lg:col-span-7 min-w-0">
+          <div className={`${showFrame ? 'lg:col-span-7' : 'lg:col-span-12'} min-w-0`}>
             <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 mb-8 pb-3 border-b border-white/10">
               <h3 className="text-xs font-mono-code uppercase tracking-widest text-zinc-400">
                 {t('branding.historyLabel')}

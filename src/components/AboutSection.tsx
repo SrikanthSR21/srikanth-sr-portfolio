@@ -5,6 +5,7 @@ import { Download, Award, GraduationCap, MapPin, Mail, Phone, ArrowRight } from 
 import profileBwImg from '../assets/images/profile_editorial_portrait_1791718263477.jpg';
 import { SectionHeading } from './SectionHeading';
 import { useToneAttrs } from '../lib/tone';
+import { linkProps, safeHref } from '../lib/links';
 
 interface AboutSectionProps {
   info: PortfolioInfo;
@@ -27,6 +28,8 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ info, fontPair, onOp
   const display = images.profileDisplay ?? 'auto';
   const shadow = display === 'framed' || (display === 'auto' && !(uploaded && images.profileTransparent));
   const alt = `${info.realName} profile portrait`;
+  const showPortrait = !images.profileHidden;
+  const href = safeHref(images.profileLink);
   const skillsVisible = layout.some((s) => s.id === 'skills' && s.visible);
   const hasEducation = info.education.length > 0;
   const hasCerts = info.certifications.length > 0;
@@ -34,10 +37,12 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ info, fontPair, onOp
   return (
     <section id="about" {...tone} className="py-16 sm:py-24 px-5 sm:px-6 border-b border-white/10 relative">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
-        {/* Portrait */}
+        {/* Portrait (can be hidden or linked from Admin → Images) */}
+        {showPortrait && (
         <div className="lg:col-span-5 min-w-0 lg:sticky lg:top-24">
           <figure className="w-full max-w-sm sm:max-w-md mx-auto lg:max-w-none">
-            <div className={`overflow-hidden rounded-[var(--radius-card,20px)] ${shadow ? 'shadow-[0_28px_60px_-24px_rgba(0,0,0,0.65)]' : ''}`}>
+            {(() => {
+              const picture = (
               <img
                 src={src}
                 alt={alt}
@@ -50,7 +55,14 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ info, fontPair, onOp
                 // The bundled editorial portrait keeps its B&W treatment; an uploaded image is shown exactly as uploaded.
                 className={`block w-full h-auto ${uploaded ? '' : 'grayscale contrast-125'}`}
               />
-            </div>
+              );
+              const box = `overflow-hidden rounded-[var(--radius-card,20px)] ${shadow ? 'shadow-[0_28px_60px_-24px_rgba(0,0,0,0.65)]' : ''}`;
+              return href ? (
+                <a {...linkProps(href)} aria-label={`${info.realName}: open link`} className={`block ${box} transition-transform hover:scale-[1.01] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white cursor-pointer`}>{picture}</a>
+              ) : (
+                <div className={box}>{picture}</div>
+              );
+            })()}
             <figcaption className="mt-5 text-center lg:text-left">
               <div className="text-xs font-bold text-white uppercase tracking-wider">{info.realName}</div>
               <div className="text-[11px] text-zinc-400 font-mono-code mt-1 flex items-center justify-center lg:justify-start gap-1.5">
@@ -60,9 +72,10 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ info, fontPair, onOp
             </figcaption>
           </figure>
         </div>
+        )}
 
         {/* Details */}
-        <div className="lg:col-span-7 min-w-0 flex flex-col">
+        <div className={`${showPortrait ? 'lg:col-span-7' : 'lg:col-span-12'} min-w-0 flex flex-col`}>
           <SectionHeading id="about" eyebrow={t('about.eyebrow')} title={t('about.title')} subtitle={t('about.subtitle')} fontPair={fontPair} className="mb-6 sm:mb-8" />
 
           <p className="tx-body text-zinc-300 text-base sm:text-lg leading-relaxed lg:leading-8 mb-8 break-words whitespace-pre-line max-w-3xl">{info.aboutBio}</p>

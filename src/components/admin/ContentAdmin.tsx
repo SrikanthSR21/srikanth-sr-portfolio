@@ -4,6 +4,7 @@ import { RecordsEditor, Field, inputCls } from './RecordsEditor';
 import { ImageUploader } from './ImageUploader';
 import { SaveBar } from './SaveBar';
 import { useDraft, useSaver } from './AdminDirty';
+import { parseHidden, safeHref } from '../../lib/links';
 import { DEFAULT_ENQUIRY_TYPES, DEFAULT_TEXTS, ClientLogo, HeroMetric, NavItem, SiteImages } from '../../lib/defaults';
 import { cloudifyCampaigns, cloudifyProjects, toCloud } from '../../lib/seed';
 import profileFallback from '../../assets/images/profile_editorial_portrait_1791718263477.jpg';
@@ -81,6 +82,8 @@ const GROUP_TITLES: Record<string, string> = {
   branding: 'Branding & Work Experience', skills: 'Skills', contact: 'Contact', footer: 'Footer',
 };
 
+const FRAME_KEYS = ['branding.frameTitle', 'branding.frameKicker', 'branding.frameBody', 'branding.frameStat1Label', 'branding.frameStat1Value', 'branding.frameStat2Label', 'branding.frameStat2Value', 'branding.frameCaption', 'branding.frameLink', 'branding.frameHidden'];
+
 const TextsEditor: React.FC = () => {
   const c = useContent();
   const { draft, setDraft, dirty, discard } = useDraft<Record<string, string>>(c.settings.texts);
@@ -88,6 +91,7 @@ const TextsEditor: React.FC = () => {
   const [q, setQ] = useState('');
 
   const groups = useMemo(() => Object.keys(DEFAULT_TEXTS).reduce<Record<string, string[]>>((acc, k) => {
+    if (FRAME_KEYS.includes(k)) return acc; // edited under Brands → CYBERBIX frame
     if (q && !k.toLowerCase().includes(q.toLowerCase()) && !(draft[k] ?? '').toLowerCase().includes(q.toLowerCase())) return acc;
     (acc[k.split('.')[0]] ||= []).push(k); return acc;
   }, {}), [q, draft]);
@@ -113,19 +117,85 @@ const TextsEditor: React.FC = () => {
   );
 };
 
-/** Optional picture for the square emblem in the CYBERFIX frame (replaces the lightning icon). Stored with the site texts, no database change needed. */
+/** The CYBERBIX frame on the Branding section: every part editable, each one can be switched off, and the card can link somewhere. Stored with the site texts, no database change needed. */
 const FRAME_LOGO_KEY = 'branding.frameLogo';
-const FrameEmblemEditor: React.FC = () => {
+const FRAME_TEXT_FIELDS: { key: string; label: string; area?: boolean }[] = [
+  { key: 'branding.frameTitle', label: 'Big title' },
+  { key: 'branding.frameKicker', label: 'Small line under the title' },
+  { key: 'branding.frameBody', label: 'Description', area: true },
+  { key: 'branding.frameStat1Label', label: 'Left box: label' },
+  { key: 'branding.frameStat1Value', label: 'Left box: value' },
+  { key: 'branding.frameStat2Label', label: 'Right box: label' },
+  { key: 'branding.frameStat2Value', label: 'Right box: value' },
+  { key: 'branding.frameCaption', label: 'Caption under the card' },
+];
+const FRAME_KEYS_ALL = [...FRAME_KEYS, FRAME_LOGO_KEY];
+
+const FrameEditor: React.FC = () => {
   const c = useContent();
-  const saved = c.settings.texts[FRAME_LOGO_KEY] ?? '';
-  const { draft, setDraft, dirty, discard } = useDraft<string>(saved);
+  const texts = c.settings.texts;
+  const source = useMemo(() => Object.fromEntries(FRAME_KEYS_ALL.map((k) => [k, texts[k] ?? DEFAULT_TEXTS[k] ?? ''])) as Record<string, string>, [texts]);
+  const { draft, setDraft, dirty, discard } = useDraft<Record<string, string>>(source);
   const { state, run } = useSaver();
+  const hidden = parseHidden(draft['branding.frameHidden']);
+  const set = (k: string, v: string) => setDraft((d) => ({ ...d, [k]: v }));
+  const setShown = (part: string, shown: boolean) => {
+    const next = new Set(hidden); if (shown) next.delete(part); else next.add(part);
+    set('branding.frameHidden', [...next].join(','));
+  };
+  const link = draft['branding.frameLink'].trim();
+  const linkBad = !!link && !safeHref(link);
+  const save = () => run(async () => {
+    if (linkBad) throw new Error('The card link must start with https://, http://, mailto:, tel:, # or /');
+    await c.saveSetting('texts', { ...c.settings.texts, ...Object.fromEntries(FRAME_KEYS_ALL.map((k) => [k, (draft[k] ?? '').trim()])) });
+  });
   return (
-    <div className="space-y-3 max-w-2xl">
-      <SaveBar title="CYBERFIX frame emblem" dirty={dirty} state={state} onDiscard={discard}
-        onSave={() => run(() => c.saveSetting('texts', { ...c.settings.texts, [FRAME_LOGO_KEY]: draft.trim() }))} />
-      <p className="text-xs text-zinc-500">The square badge at the top of the CYBERFIX frame. Add an image to replace the lightning icon; remove it to bring the icon back.</p>
-      <ImageUploader value={draft} folder="brands" allowClear onChange={(url) => setDraft(url)} />
+    <div className="space-y-5 max-w-2xl">
+      <SaveBar title="CYBERBIX frame" dirty={dirty} state={state} onDiscard={discard} onSave={save} />
+      <p className="text-xs text-zinc-500">The glowing card on the Branding section. Edit any text, switch off the parts you do not need now (nothing is deleted, switch it back on any time), and optionally make the whole card a link.</p>
+
+      <label className="flex items-center gap-2.5 text-sm font-semibold text-white cursor-pointer">
+        <input type="checkbox" className="w-4 h-4 accent-white" checked={!hidden.has('frame')} onChange={(e) => setShown('frame', e.target.checked)} />
+        Show the whole CYBERBIX card (when off, the work history uses the full width)
+      </label>
+
+      <div className="space-y-3">
+        <h4 className="text-xs uppercase tracking-widest text-zinc-400">Square emblem</h4>
+        <ImageUploader value={draft[FRAME_LOGO_KEY]} folder="brands" allowClear onChange={(url) => set(FRAME_LOGO_KEY, url)} />
+        <p className="text-[11px] text-zinc-500">Add an image to replace the lightning icon; remove it to bring the icon back.</p>
+      </div>
+
+      <label className="grid gap-1.5">
+        <span className="text-[10px] uppercase tracking-wider text-zinc-500">Card link (optional): makes the whole card clickable</span>
+        <input className={inputCls} value={draft['branding.frameLink']} placeholder="https://cyberbix.com  ·  #contact  ·  leave empty for no link" onChange={(e) => set('branding.frameLink', e.target.value)} />
+        {linkBad && <span className="text-[11px] text-red-400">Start with https://, http://, mailto:, tel:, # or /</span>}
+      </label>
+
+      <div className={`space-y-4 ${hidden.has('frame') ? 'opacity-50' : ''}`}>
+        {FRAME_TEXT_FIELDS.map((f) => {
+          const part = f.key.endsWith('Title') ? 'title' : f.key.endsWith('Kicker') ? 'kicker' : f.key.endsWith('Body') ? 'body' : f.key.endsWith('Caption') ? 'caption' : f.key.includes('Stat1') ? 'stat1' : 'stat2';
+          const showSwitch = f.key.endsWith('Title') || f.key.endsWith('Kicker') || f.key.endsWith('Body') || f.key.endsWith('Caption') || f.key.endsWith('Stat1Label') || f.key.endsWith('Stat2Label');
+          return (
+            <div key={f.key} className="grid gap-1.5">
+              <div className="flex items-center justify-between gap-3">
+                <label htmlFor={`fr-${f.key}`} className="text-[10px] uppercase tracking-wider text-zinc-500">{f.label}</label>
+                {showSwitch && (
+                  <label className="flex items-center gap-1.5 text-[11px] text-zinc-300 cursor-pointer">
+                    <input type="checkbox" className="w-3.5 h-3.5 accent-white" checked={!hidden.has(part)} onChange={(e) => setShown(part, e.target.checked)} /> Show
+                  </label>
+                )}
+              </div>
+              {f.area
+                ? <textarea id={`fr-${f.key}`} rows={3} className={inputCls} value={draft[f.key]} onChange={(e) => set(f.key, e.target.value)} />
+                : <input id={`fr-${f.key}`} className={inputCls} value={draft[f.key]} onChange={(e) => set(f.key, e.target.value)} />}
+            </div>
+          );
+        })}
+        <label className="flex items-center gap-2 text-[11px] text-zinc-300 cursor-pointer">
+          <input type="checkbox" className="w-3.5 h-3.5 accent-white" checked={!hidden.has('emblem')} onChange={(e) => setShown('emblem', e.target.checked)} /> Show the square emblem
+        </label>
+      </div>
+      <button type="button" onClick={() => setDraft((d) => ({ ...d, ...Object.fromEntries(FRAME_KEYS.map((k) => [k, DEFAULT_TEXTS[k] ?? ''])) }))} className="text-xs text-zinc-300 underline underline-offset-4 cursor-pointer">Restore the default texts (keeps your emblem image)</button>
     </div>
   );
 };
@@ -136,9 +206,21 @@ const ImagesEditor: React.FC = () => {
   const { state, run } = useSaver();
   return (
     <div className="space-y-5">
-      <SaveBar title="Images" dirty={dirty} state={state} onDiscard={discard} onSave={() => run(() => c.saveSetting('images', draft))} />
+      <SaveBar title="Images" dirty={dirty} state={state} onDiscard={discard} onSave={() => run(async () => {
+        if (draft.profileLink?.trim() && !safeHref(draft.profileLink)) throw new Error('The portrait link must start with https://, http://, mailto:, tel:, # or /');
+        await c.saveSetting('images', { ...draft, profileLink: draft.profileLink?.trim() ? safeHref(draft.profileLink) : '' });
+      })} />
       <section className="space-y-3 max-w-2xl">
         <h4 className="text-xs uppercase tracking-widest text-zinc-400">About Me portrait</h4>
+        <label className="flex items-center gap-2.5 text-sm font-semibold text-white cursor-pointer">
+          <input type="checkbox" className="w-4 h-4 accent-white" checked={!draft.profileHidden} onChange={(e) => setDraft((d) => ({ ...d, profileHidden: !e.target.checked }))} />
+          Show the portrait on the About section (when off, the text uses the full width; the image is kept)
+        </label>
+        <label className="grid gap-1.5 max-w-xl">
+          <span className="text-[10px] uppercase tracking-wider text-zinc-500">Portrait link (optional): makes the image clickable</span>
+          <input className={inputCls} value={draft.profileLink ?? ''} placeholder="https://linkedin.com/in/…  ·  #contact  ·  leave empty for no link" onChange={(e) => setDraft((d) => ({ ...d, profileLink: e.target.value }))} />
+          {!!draft.profileLink?.trim() && !safeHref(draft.profileLink) && <span className="text-[11px] text-red-400">Start with https://, http://, mailto:, tel:, # or /</span>}
+        </label>
         <ImageUploader large value={draft.profile} folder="profile"
           onChange={(url, meta) => setDraft((d) => ({ ...d, profile: url, profileTransparent: meta ? meta.hasAlpha : d.profileTransparent, profileWidth: meta?.width || undefined, profileHeight: meta?.height || undefined }))} />
         <label className="grid gap-1.5 max-w-xs">
@@ -241,7 +323,7 @@ export const ContentAdmin: React.FC<{ tab: ContentTab }> = ({ tab }) => {
           blank={() => ({ id: uid('c'), name: 'NEW BRAND', symbol: 'NB' })}
           onSave={(items) => c.saveSetting('clients', items)} />
       )}
-      {tab === 'Brands' && <div className="pt-6 mt-6 border-t border-white/10"><FrameEmblemEditor /></div>}
+      {tab === 'Brands' && <div className="pt-6 mt-6 border-t border-white/10"><FrameEditor /></div>}
       {tab === 'Images' && <ImagesEditor />}
       {tab === 'Contact form' && <ContactFormEditor />}
       {tab === 'Setup' && (

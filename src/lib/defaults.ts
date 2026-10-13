@@ -28,6 +28,10 @@ export interface SiteImages {
   profileHeight?: number;
   /** auto = no shadow for transparent images, soft shadow otherwise. 'framed' = always soft shadow, 'cutout' = never. Always rectangular, never cropped. */
   profileDisplay?: 'auto' | 'framed' | 'cutout';
+  /** Optional link: clicking the About portrait opens it (https://…, #section, mailto:…). Empty = not clickable. */
+  profileLink?: string;
+  /** true = hide the portrait on the public site (the text then uses the full width). Nothing is deleted. */
+  profileHidden?: boolean;
 }
 
 export const DEFAULT_ENQUIRY_TYPES: string[] = [
@@ -122,13 +126,16 @@ export const DEFAULT_TEXTS: Record<string, string> = {
   'branding.brandsMeta': '10+ VENTURES · MONOCHROME TICKER',
   'branding.historyLabel': 'WORK HISTORY',
   'branding.historyMeta': '2025 — PRESENT (CHRONOLOGICAL)',
-  'branding.frameTitle': 'CYBERFIX',
+  'branding.frameTitle': 'CYBERBIX',
   'branding.frameKicker': 'CYBERBIX IN-HOUSE VENTURES',
   'branding.frameBody': 'Spearheading comprehensive brand architectures, AI-assisted visual guidelines, and direct growth engines for high-impact social commerce.',
   'branding.frameStat1Label': 'Brands Built',
   'branding.frameStat1Value': 'Orderbix · 6thLoom',
   'branding.frameStat2Label': 'Active Status',
   'branding.frameStat2Value': 'Current Role',
+  'branding.frameCaption': 'Continuous white glow pulse · verified ecosystem',
+  'branding.frameLink': '',      // optional: makes the whole card clickable
+  'branding.frameHidden': '',    // comma list of hidden parts, see FRAME_PARTS (edited under Brands → CYBERBIX frame)
 
   'contact.eyebrow': '06 // DIRECT ROUTING & CLIENT INTAKE',
   'contact.title': "LET'S BUILD SOMETHING AMAZING",
