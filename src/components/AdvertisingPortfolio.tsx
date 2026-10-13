@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { AdCampaignItem, FontPairOption } from '../types';
 import { TrendingUp, BarChart3, CheckCircle2 } from 'lucide-react';
 import { SectionHeading } from './SectionHeading';
+import { useToneAttrs } from '../lib/tone';
 
 interface AdvertisingPortfolioProps {
   campaigns: AdCampaignItem[];
@@ -13,6 +14,7 @@ export const AdvertisingPortfolio: React.FC<AdvertisingPortfolioProps> = ({
   campaigns,
   fontPair,
 }) => {
+  const tone = useToneAttrs('advertising');
   const { t } = useContent();
   const [selectedFilter, setSelectedFilter] = useState<string>('All');
 
@@ -28,7 +30,7 @@ export const AdvertisingPortfolio: React.FC<AdvertisingPortfolioProps> = ({
     activeFilter === 'All' ? shown : shown.filter((c) => c.platform.includes(activeFilter));
 
   return (
-    <section id="advertising" className="py-16 sm:py-24 px-5 sm:px-6 border-b border-white/10 relative">
+    <section id="advertising" {...tone} className="py-16 sm:py-24 px-5 sm:px-6 border-b border-white/10 relative">
       <div className="max-w-7xl mx-auto">
         <SectionHeading id="advertising" eyebrow={t('ads.eyebrow')} title={t('ads.title')} subtitle={t('ads.subtitle')} fontPair={fontPair} className="mb-10 sm:mb-12"
           aside={(
@@ -93,7 +95,7 @@ export const AdvertisingPortfolio: React.FC<AdvertisingPortfolioProps> = ({
                         <TrendingUp className="w-4 h-4 text-white shrink-0" />
                         <span>{camp.metricHeadline}</span>
                       </div>
-                      <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed mb-6 break-words">
+                      <p className="tx-body text-xs sm:text-sm text-zinc-400 leading-relaxed mb-6 break-words">
                         {camp.summary}
                       </p>
                     </div>
@@ -143,7 +145,7 @@ export const AdvertisingPortfolio: React.FC<AdvertisingPortfolioProps> = ({
                       </div>
                     </div>
 
-                    <p className="text-sm text-zinc-300 leading-relaxed mb-6">
+                    <p className="tx-body text-sm text-zinc-300 leading-relaxed mb-6">
                       {camp.summary}
                     </p>
 

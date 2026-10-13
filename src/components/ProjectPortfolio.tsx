@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { ProjectItem, FontPairOption } from '../types';
 import { ArrowUpRight, ExternalLink, Github, Globe, Smartphone, Monitor, X } from 'lucide-react';
 import { SectionHeading } from './SectionHeading';
+import { useToneAttrs } from '../lib/tone';
 
 const withProtocol = (u: string) => (/^https?:\/\//i.test(u) ? u : `https://${u}`);
 const hostOf = (u: string, fallbackTitle: string) => {
@@ -18,6 +19,7 @@ export const ProjectPortfolio: React.FC<ProjectPortfolioProps> = ({
   projects,
   fontPair,
 }) => {
+  const tone = useToneAttrs('projects');
   const { t } = useContent();
   const visibleProjects = projects.filter((p) => p.visible !== false);
   const [activeModalProject, setActiveModalProject] = useState<ProjectItem | null>(null);
@@ -32,7 +34,7 @@ export const ProjectPortfolio: React.FC<ProjectPortfolioProps> = ({
   }, [activeModalProject]);
 
   return (
-    <section id="projects" className="py-16 sm:py-24 px-5 sm:px-6 border-b border-white/10 relative">
+    <section id="projects" {...tone} className="py-16 sm:py-24 px-5 sm:px-6 border-b border-white/10 relative">
       <div className="max-w-7xl mx-auto">
         <SectionHeading id="projects" eyebrow={t('projects.eyebrow')} title={t('projects.title')} subtitle={t('projects.subtitle')} subtitlePlacement="side" fontPair={fontPair} className="mb-10 sm:mb-16" />
 
@@ -93,7 +95,7 @@ export const ProjectPortfolio: React.FC<ProjectPortfolioProps> = ({
                     </span>
                   </div>
 
-                  <p className="text-zinc-300 text-sm leading-relaxed mb-4">
+                  <p className="tx-body text-zinc-300 text-sm leading-relaxed mb-4">
                     {project.shortDesc}
                   </p>
 
@@ -207,7 +209,7 @@ export const ProjectPortfolio: React.FC<ProjectPortfolioProps> = ({
                 <h5 className="text-lg font-bold text-white mb-3">
                   {activeModalProject.title} — Executive Case Study
                 </h5>
-                <p className="text-sm text-zinc-300 leading-relaxed mb-4 whitespace-pre-line break-words">
+                <p className="tx-body text-sm text-zinc-300 leading-relaxed mb-4 whitespace-pre-line break-words">
                   {activeModalProject.fullDesc}
                 </p>
 

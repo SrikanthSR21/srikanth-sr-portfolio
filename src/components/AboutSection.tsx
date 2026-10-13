@@ -4,6 +4,7 @@ import { PortfolioInfo, FontPairOption } from '../types';
 import { Download, Award, GraduationCap, MapPin, Mail, Phone, ArrowRight } from 'lucide-react';
 import profileBwImg from '../assets/images/profile_editorial_portrait_1791718263477.jpg';
 import { SectionHeading } from './SectionHeading';
+import { useToneAttrs } from '../lib/tone';
 
 interface AboutSectionProps {
   info: PortfolioInfo;
@@ -15,6 +16,7 @@ interface AboutSectionProps {
 const BUNDLED = { width: 896, height: 1200 };
 
 export const AboutSection: React.FC<AboutSectionProps> = ({ info, fontPair, onOpenResume }) => {
+  const tone = useToneAttrs('about');
   const { t, settings: { images, layout } } = useContent();
 
   const uploaded = !!images.profile;
@@ -30,7 +32,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ info, fontPair, onOp
   const hasCerts = info.certifications.length > 0;
 
   return (
-    <section id="about" className="py-16 sm:py-24 px-5 sm:px-6 border-b border-white/10 relative">
+    <section id="about" {...tone} className="py-16 sm:py-24 px-5 sm:px-6 border-b border-white/10 relative">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
         {/* Portrait */}
         <div className="lg:col-span-5 min-w-0 lg:sticky lg:top-24">
@@ -63,7 +65,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ info, fontPair, onOp
         <div className="lg:col-span-7 min-w-0 flex flex-col">
           <SectionHeading id="about" eyebrow={t('about.eyebrow')} title={t('about.title')} subtitle={t('about.subtitle')} fontPair={fontPair} className="mb-6 sm:mb-8" />
 
-          <p className="text-zinc-300 text-base sm:text-lg leading-relaxed lg:leading-8 mb-8 break-words whitespace-pre-line max-w-3xl">{info.aboutBio}</p>
+          <p className="tx-body text-zinc-300 text-base sm:text-lg leading-relaxed lg:leading-8 mb-8 break-words whitespace-pre-line max-w-3xl">{info.aboutBio}</p>
 
           {(hasEducation || hasCerts) && (
             <div className={`grid grid-cols-1 ${hasEducation && hasCerts ? 'md:grid-cols-2' : ''} gap-6 mb-8 p-5 sm:p-6 bg-zinc-950 rounded-[var(--radius-card,20px)] border border-white/10`}>

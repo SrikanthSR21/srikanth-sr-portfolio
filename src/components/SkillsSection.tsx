@@ -4,6 +4,7 @@ import type { FontPairOption } from '../types';
 import { visibleSkillGroups, SkillItem } from '../lib/skills';
 import { SectionHeading } from './SectionHeading';
 import { SkillIcon } from './SkillIcon';
+import { useToneAttrs } from '../lib/tone';
 
 function useInView<T extends Element>() {
   const ref = useRef<T>(null);
@@ -27,6 +28,7 @@ const Bar: React.FC<{ name: string; level: number; grown: boolean }> = ({ name, 
 );
 
 export const SkillsSection: React.FC<{ fontPair: FontPairOption }> = ({ fontPair }) => {
+  const tone = useToneAttrs('skills');
   const { settings, t } = useContent();
   const cfg = settings.skills;
   const groups = visibleSkillGroups(cfg);
@@ -34,7 +36,7 @@ export const SkillsSection: React.FC<{ fontPair: FontPairOption }> = ({ fontPair
   const showLevel = (s: SkillItem) => cfg.showLevels && s.level != null;
 
   return (
-    <section id="skills" className="py-16 sm:py-24 px-5 sm:px-6 border-b border-white/10 relative">
+    <section id="skills" {...tone} className="py-16 sm:py-24 px-5 sm:px-6 border-b border-white/10 relative">
       <div className="max-w-7xl mx-auto">
         <SectionHeading id="skills" eyebrow={t('skills.eyebrow')} title={t('skills.title')} subtitle={t('skills.subtitle')} fontPair={fontPair} className="mb-10 sm:mb-14" />
 

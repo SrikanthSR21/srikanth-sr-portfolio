@@ -44,8 +44,8 @@ export const SectionHeading: React.FC<Props> = ({ id, eyebrow, title, subtitle, 
   );
   const sub = subtitle ? (
     <p className={subtitlePlacement === 'side'
-      ? 'text-xs font-mono-code text-zinc-400 max-w-xs sm:text-right'
-      : `text-sm font-mono-code text-zinc-400 max-w-2xl ${centered ? 'mx-auto' : ''}`}>
+      ? 'tx-secSub text-xs font-mono-code text-zinc-400 max-w-xs sm:text-right'
+      : `tx-secSub text-sm font-mono-code text-zinc-400 max-w-2xl ${centered ? 'mx-auto' : ''}`}>
       <RichText text={subtitle} />
     </p>
   ) : null;
@@ -54,7 +54,7 @@ export const SectionHeading: React.FC<Props> = ({ id, eyebrow, title, subtitle, 
     <div className={`sec-head ${className}`} data-hl={a.highlight ? 'on' : 'off'}>
       <div className={`flex flex-col ${aside || (sub && subtitlePlacement === 'side') ? 'sm:flex-row sm:items-end justify-between gap-4 sm:gap-6' : ''}`}>
         <div className={`min-w-0 ${centered ? 'text-center w-full' : ''}`}>
-          {eyebrow && <div className="text-xs font-mono-code uppercase tracking-widest text-zinc-400 mb-2">{eyebrow}</div>}
+          {eyebrow && <div className="tx-eyebrow text-xs font-mono-code uppercase tracking-widest text-zinc-400 mb-2">{eyebrow}</div>}
           <div className={centered ? 'flex justify-center' : ''}>{heading}</div>
           {sub && subtitlePlacement === 'below' && <div className="mt-3">{sub}</div>}
         </div>

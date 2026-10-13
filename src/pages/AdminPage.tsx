@@ -79,7 +79,7 @@ const GROUPS: { title: string; items: NavEntry[] }[] = [
   { title: 'Site settings', items: [
     { id: 'headings', label: 'Section Headings', icon: Heading, hint: 'Rename every section heading, eyebrow and subtitle' },
     { id: 'appearance', label: 'Appearance', icon: Palette, hint: 'Theme colours, hero animation, default light/dark mode and font pair' },
-    { id: 'typography', label: 'Typography & Highlights', icon: Brush, hint: 'Heading fonts, gradients, underlines, highlighted words and corner radius' },
+    { id: 'typography', label: 'Typography & Highlights', icon: Brush, hint: 'Section background bands, hero cards, fonts / sizes / colours for every text type, gradients and highlights' },
     { id: 'layout', label: 'Section Visibility & Order', icon: Layers, hint: 'Show, hide and reorder sections' },
     { id: 'Navigation', label: 'Navbar Links', icon: Navigation, hint: 'Top bar and mobile menu links' },
     { id: 'Texts', label: 'All Texts', icon: Type, hint: 'Every label and heading on the website' },

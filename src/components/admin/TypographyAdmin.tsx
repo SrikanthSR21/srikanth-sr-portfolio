@@ -1,36 +1,21 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { RotateCcw } from 'lucide-react';
 import { useContent } from '../../context/ContentContext';
 import { FONT_PAIRS } from '../../data/portfolioData';
 import { SECTION_REGISTRY, SectionId } from '../../lib/sections';
 import {
-  ACCENT_PRESETS, DEFAULT_SECTION_TYPO, DEFAULT_TYPOGRAPHY, FONT_OPTIONS, GRADIENT_PRESETS, sectionTypo, TypographySettings, typographyToDom,
+  rolesToCss, ACCENT_PRESETS, DEFAULT_SECTION_TYPO, DEFAULT_TYPOGRAPHY, ensureFontsFor, FONT_OPTIONS, GRADIENT_PRESETS, sectionTypo, TypographySettings, typographyToDom,
 } from '../../lib/typography';
 import { SectionHeading } from '../SectionHeading';
 import { SaveBar } from './SaveBar';
 import { useDraft, useSaver } from './AdminDirty';
 import { inputCls } from './RecordsEditor';
+import { ColorField, Seg, lbl } from './typoUi';
+import { SectionTonesPanel } from './SectionTonesPanel';
+import { MetricCardsPanel } from './MetricCardsPanel';
+import { TextRolesPanel } from './TextRolesPanel';
 
-const lbl = 'text-[10px] uppercase tracking-wider text-zinc-500';
 const WEIGHTS = [{ v: 0, l: 'Theme default' }, { v: 400, l: 'Regular 400' }, { v: 500, l: 'Medium 500' }, { v: 600, l: 'Semibold 600' }, { v: 700, l: 'Bold 700' }, { v: 800, l: 'Extra bold 800' }, { v: 900, l: 'Black 900' }];
-
-const Seg = <T extends string>({ value, options, onChange, label }: { value: T; options: { id: T; label: string }[]; onChange: (v: T) => void; label: string }) => (
-  <div role="radiogroup" aria-label={label} className="flex flex-wrap gap-1.5">
-    {options.map((o) => (
-      <button key={o.id} type="button" role="radio" aria-checked={value === o.id} onClick={() => onChange(o.id)}
-        className={`px-3 py-1.5 text-xs rounded-lg border cursor-pointer ${value === o.id ? 'bg-white text-black border-white font-semibold' : 'border-white/15 text-zinc-300 hover:border-white/40'}`}>{o.label}</button>
-    ))}
-  </div>
-);
-
-const ColorField: React.FC<{ label: string; value: string; onChange: (v: string) => void }> = ({ label, value, onChange }) => (
-  <label className="grid gap-1.5"><span className={lbl}>{label}</span>
-    <span className="flex items-center gap-2">
-      <input type="color" value={value} onChange={(e) => onChange(e.target.value)} aria-label={`${label} picker`} className="w-12 h-9 bg-transparent border border-white/20 rounded cursor-pointer" />
-      <input value={value} onChange={(e) => /^#[0-9a-fA-F]{0,6}$/.test(e.target.value) && onChange(e.target.value)} aria-label={`${label} hex`} className={`${inputCls} !w-28 font-mono-code`} maxLength={7} />
-    </span>
-  </label>
-);
 
 export const TypographyAdmin: React.FC = () => {
   const { settings, saveSetting } = useContent();
@@ -46,6 +31,8 @@ export const TypographyAdmin: React.FC = () => {
 
   const { attrs, vars } = useMemo(() => typographyToDom(bad ? { ...draft, accent: validHex(draft.accent) ? draft.accent : '#7c9cff', gradientFrom: validHex(draft.gradientFrom) ? draft.gradientFrom : '#7c9cff', gradientTo: validHex(draft.gradientTo) ? draft.gradientTo : '#c084fc' } : draft), [draft, bad]);
   const sections = settings.layout.map((s) => s.id).filter((id) => id !== 'hero' && id !== 'footer');
+  const bandSections = settings.layout.map((s) => s.id);
+  useEffect(() => { ensureFontsFor(draft); }, [draft]);
 
   return (
     <div className="space-y-6">
@@ -57,6 +44,7 @@ export const TypographyAdmin: React.FC = () => {
       <section aria-label="Live preview" className="rounded-xl border border-white/15 bg-black overflow-hidden lg:sticky lg:top-16 z-[5]">
         <div className="px-3 py-1.5 text-[10px] uppercase tracking-widest text-zinc-500 border-b border-white/10 flex justify-between"><span>Live preview (not saved yet)</span>{dirty && <span className="text-amber-400">● unsaved</span>}</div>
         <div className="typo-scope p-5 sm:p-6 grid gap-5 sm:grid-cols-[1.2fr_1fr] items-start" {...attrs} style={vars as React.CSSProperties}>
+          <style>{rolesToCss(draft, '.typo-scope', 'dark')}</style>
           <SectionHeading id="projects" fontPair={fontPair} typographyOverride={draft} eyebrow="// PREVIEW" title="Selected ==work== & projects" subtitle="Words wrapped in ==double equals== get the highlight style." />
           <div className="p-4 bg-zinc-950 border border-white/10 rounded-[var(--radius-card,20px)]">
             <h3 className={`card-heading text-lg font-bold text-white uppercase tracking-tight mb-1.5 ${fontPair.headlineClass}`}>Sample card title</h3>
@@ -65,6 +53,10 @@ export const TypographyAdmin: React.FC = () => {
           </div>
         </div>
       </section>
+
+      <SectionTonesPanel draft={draft} setDraft={setDraft} sections={bandSections} />
+      <MetricCardsPanel draft={draft} setDraft={setDraft} />
+      <TextRolesPanel draft={draft} setDraft={setDraft} fontPair={fontPair} />
 
       <fieldset className="p-4 rounded-xl border border-white/10 bg-zinc-950/50 space-y-4">
         <legend className="px-2 text-[11px] font-bold uppercase tracking-widest text-zinc-300">Section headings</legend>

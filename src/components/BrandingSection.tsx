@@ -3,6 +3,7 @@ import React from 'react';
 import { ExperienceItem, FontPairOption } from '../types';
 import { Zap } from 'lucide-react';
 import { SectionHeading } from './SectionHeading';
+import { useToneAttrs } from '../lib/tone';
 
 interface BrandingSectionProps {
   workExperience: ExperienceItem[];
@@ -30,7 +31,7 @@ const ExperienceBody: React.FC<{ exp: ExperienceItem; fontPair: FontPairOption }
       <div className="text-sm font-semibold text-zinc-300 uppercase tracking-wider font-mono-code mb-3 break-words">
         {exp.company} <span className="text-zinc-500">· {exp.location}</span>
       </div>
-      <p className="text-sm text-zinc-400 leading-relaxed mb-4 break-words">{exp.summary}</p>
+      <p className="tx-body text-sm text-zinc-400 leading-relaxed mb-4 break-words">{exp.summary}</p>
       <ul className="space-y-2 text-xs sm:text-sm text-zinc-300">
         {exp.achievements.map((ach, aIdx) => (
           <li key={aIdx} className="flex items-start gap-2.5">
@@ -75,10 +76,11 @@ export const BrandingSection: React.FC<BrandingSectionProps> = ({
   workExperience,
   fontPair,
 }) => {
+  const tone = useToneAttrs('branding');
   const { t, settings: { clients: CLIENT_LOGOS, texts } } = useContent();
   const frameLogo = texts['branding.frameLogo']?.trim();
   return (
-    <section id="branding" className="py-16 sm:py-24 px-5 sm:px-6 border-b border-white/10 relative overflow-hidden">
+    <section id="branding" {...tone} className="py-16 sm:py-24 px-5 sm:px-6 border-b border-white/10 relative overflow-hidden">
       <div className="max-w-7xl mx-auto">
         <SectionHeading id="branding" eyebrow={t('branding.eyebrow')} title={t('branding.title')} subtitle={t('branding.subtitle')} fontPair={fontPair} className="mb-10 sm:mb-16" />
 

@@ -4,6 +4,7 @@ import { useContent } from '../context/ContentContext';
 import { FontPairOption } from '../types';
 import { SectionHeading } from './SectionHeading';
 import { EnquiryErrors, EnquiryError, EnquiryResult, LIMITS, newRef, submitEnquiry, validateEnquiry, whatsappLink } from '../lib/enquiry';
+import { useToneAttrs } from '../lib/tone';
 
 interface ContactSectionProps {
   fontPair: FontPairOption;
@@ -21,6 +22,7 @@ const field = 'w-full px-4 py-3.5 rounded-xl bg-zinc-950 border text-white place
 const label = 'text-xs uppercase font-mono-code tracking-wider text-zinc-300 block';
 
 export const ContactSection: React.FC<ContactSectionProps> = ({ fontPair, whatsappNumber, email, phone, location }) => {
+  const tone = useToneAttrs('contact');
   const { t, settings } = useContent();
   const uid = useId();
   const id = (n: string) => `${uid}-${n}`;
@@ -95,7 +97,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ fontPair, whatsa
     errors[k] ? <p id={`${fieldId}-err`} className="text-xs text-red-400 flex items-start gap-1.5" role="alert"><AlertCircle className="w-3.5 h-3.5 mt-px shrink-0" aria-hidden="true" />{errors[k]}</p> : null;
 
   return (
-    <section id="contact" className="py-16 sm:py-24 px-5 sm:px-6 border-b border-white/10 relative">
+    <section id="contact" {...tone} className="py-16 sm:py-24 px-5 sm:px-6 border-b border-white/10 relative">
       <div className="max-w-4xl mx-auto">
         <SectionHeading id="contact" variant="hero" eyebrow={t('contact.eyebrow')} title={t('contact.title')} subtitle={t('contact.subtitle')} fontPair={fontPair} className="mb-10 sm:mb-14" />
 
@@ -107,7 +109,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ fontPair, whatsa
               </div>
               <div>
                 <h3 className={`text-2xl sm:text-3xl font-bold text-white uppercase mb-2 ${fontPair.headlineClass}`}>{t('contact.successTitle')}</h3>
-                <p className="text-sm text-zinc-300 max-w-md mx-auto">
+                <p className="tx-body text-sm text-zinc-300 max-w-md mx-auto">
                   Thanks, {done.snapshot.name.split(' ')[0]}! Your enquiry has been saved to my inbox as{' '}
                   <span className="font-mono-code text-white font-bold">{done.result.ref}</span>
                   {done.result.whatsapp === 'sent' ? ' and delivered to my WhatsApp.' : '.'} I will reply to {done.snapshot.email}.

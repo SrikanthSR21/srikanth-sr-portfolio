@@ -3,6 +3,8 @@ import { HeroAnimationMode, FontPairOption } from '../types';
 import { ArrowDown, FileText, ArrowRight } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 import { ContactLink, HeroContactRow } from './ContactLinks';
+import { MetricCards } from './MetricCards';
+import { useToneAttrs } from '../lib/tone';
 
 interface HeroSectionProps {
   headline: string;
@@ -25,6 +27,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   mobileContactLinks,
 }) => {
   const { settings, t } = useContent();
+  const tone = useToneAttrs('hero');
   const animationMode: HeroAnimationMode = initialMode; // chosen in /admin → Appearance
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
@@ -63,6 +66,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   return (
     <section
       id="home"
+      {...tone}
       ref={containerRef}
       onMouseMove={handleMouseMove}
       className="relative min-h-[90svh] flex flex-col justify-center items-center px-5 sm:px-6 pt-14 pb-24 sm:pb-28 overflow-hidden border-b border-white/10 select-none"
@@ -140,7 +144,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       {/* Main Hero Content */}
       <div className="relative z-10 w-full max-w-5xl mx-auto text-center flex flex-col items-center min-w-0">
         {/* Persona toggle */}
-        <div className="mb-6 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-zinc-400 font-mono-code">
+        <div className="tx-heroEyebrow mb-6 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-zinc-400 font-mono-code">
           <span>{t('hero.eyebrow')}</span>
           {namesDiffer && (
             <>
@@ -158,7 +162,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
         {/* Big powerful white text */}
         <h1
-          className={`max-w-full font-black text-white tracking-tighter leading-[1.02] mb-6 drop-shadow-sm ${fontPair.headlineClass}`}
+          className={`tx-heroName max-w-full font-black text-white tracking-tighter leading-[1.02] mb-6 drop-shadow-sm ${fontPair.headlineClass}`}
           // Fluid size: ~42px at 320px wide, ~77px at 768px, capped at 128px (the previous lg:text-9xl).
           // overflow-wrap keeps one very long word from ever pushing the page wider than the screen.
           style={{ textWrap: 'balance', fontSize: 'clamp(2.5rem, 8vw + 1rem, 8rem)', overflowWrap: 'anywhere' }}
@@ -167,7 +171,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         </h1>
 
         {/* Subtitle */}
-        <p className="text-sm sm:text-xl md:text-2xl font-medium tracking-[0.12em] sm:tracking-widest text-zinc-300 uppercase mb-8 sm:mb-10 max-w-3xl break-words">
+        <p className="tx-heroSub text-sm sm:text-xl md:text-2xl font-medium tracking-[0.12em] sm:tracking-widest text-zinc-300 uppercase mb-8 sm:mb-10 max-w-3xl break-words">
           {subheadline}
         </p>
 
@@ -193,15 +197,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           </button>
         </div>
 
-        {/* Metric Bar Below CTA */}
-        <div className="mt-12 sm:mt-16 pt-8 border-t border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-6 sm:gap-12 text-center w-full max-w-4xl">
-          {settings.hero_metrics.map((m) => (
-            <div key={m.id}>
-              <div className="text-2xl sm:text-3xl font-extrabold text-white tabular-nums break-words">{m.value}</div>
-              <div className="text-[11px] sm:text-xs text-zinc-400 uppercase tracking-wider mt-1">{m.label}</div>
-            </div>
-          ))}
-        </div>
+        {/* Floating metric cards below the buttons (style / animation: Admin → Typography & Highlights) */}
+        <MetricCards metrics={settings.hero_metrics} settings={settings.typography.metricCards} className="mt-12 sm:mt-16" />
       </div>
 
       {/* Subtle Scroll Down Prompt */}
