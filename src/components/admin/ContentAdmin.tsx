@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useContent } from '../../context/ContentContext';
 import { RecordsEditor, Field, inputCls } from './RecordsEditor';
+import { ProjectsAdmin } from './ProjectsAdmin';
 import { ImageUploader } from './ImageUploader';
 import { SaveBar } from './SaveBar';
 import { useDraft, useSaver } from './AdminDirty';
@@ -8,7 +9,8 @@ import { parseHidden, safeHref } from '../../lib/links';
 import { DEFAULT_ENQUIRY_TYPES, DEFAULT_TEXTS, ClientLogo, HeroMetric, NavItem, SiteImages } from '../../lib/defaults';
 import { cloudifyCampaigns, cloudifyProjects, toCloud } from '../../lib/seed';
 import profileFallback from '../../assets/images/profile_editorial_portrait_1791718263477.jpg';
-import { AdCampaignItem, ExperienceItem, ProjectItem } from '../../types';
+import { PROJECTS_DATA } from '../../data/portfolioData';
+import { AdCampaignItem, ExperienceItem } from '../../types';
 
 const uid = (p: string) => `${p}-${Math.random().toString(36).slice(2, 8)}`;
 
@@ -27,21 +29,6 @@ const CLIENT_FIELDS: Field[] = [
   { key: 'symbol', label: '2-letter monogram', type: 'text', hint: 'Shown when no logo image is added.' },
   { key: 'logo', label: 'Logo image (optional, small)', type: 'image', folder: 'brands', optional: true, hint: 'Replaces the monogram in the ticker. Square or wide logos both work; transparent PNG/SVG recommended.' },
   { key: 'logoBg', label: 'Logo badge background', type: 'select', options: ['light', 'dark', 'none'], showIf: (it: any) => !!it.logo, hint: 'light = white badge (for dark logos) · dark = black badge (for white logos) · none = transparent' },
-];
-const PROJECT_FIELDS: Field[] = [
-  { key: 'visible', label: 'Show on the public site', type: 'bool' },
-  { key: 'title', label: 'Project title', type: 'text' },
-  { key: 'category', label: 'Category', type: 'text', hint: 'e.g. Portfolio website, E-commerce, Web app' },
-  { key: 'shortDesc', label: 'Short description (shown on the card)', type: 'textarea' },
-  { key: 'fullDesc', label: 'Full description (shown in the pop-up)', type: 'textarea' },
-  { key: 'heroImage', label: 'Preview image', type: 'image', folder: 'projects' },
-  { key: 'tags', label: 'Skills / technologies (comma separated)', type: 'tags' },
-  { key: 'liveUrl', label: 'Live website URL', type: 'text' },
-  { key: 'sourceUrl', label: 'Source-code URL (optional)', type: 'text' },
-  { key: 'client', label: 'Client / for whom (optional)', type: 'text' },
-  { key: 'role', label: 'Your role', type: 'text' },
-  { key: 'year', label: 'Year', type: 'text' },
-  { key: 'metrics', label: 'Highlight line (optional)', type: 'text' },
 ];
 const WORK_TYPES = ['Meta Ads', 'Google Ads', 'Omnichannel', 'SEO & SEM', 'Social Media Marketing', 'Website Optimization', 'Marketing Report'];
 const CAMPAIGN_FIELDS: Field[] = [
@@ -268,7 +255,7 @@ export const ContentAdmin: React.FC<{ tab: ContentTab }> = ({ tab }) => {
     if (!confirm('Copy ALL built-in content and images into your database? Existing database content will be overwritten.')) return;
     setMsg('Uploading images and saving… (≈ 20 s)');
     try {
-      await c.saveCollection('projects', await cloudifyProjects(c.collections.projects));
+      await c.saveCollection('projects', await cloudifyProjects(c.collections.projects.length ? c.collections.projects : PROJECTS_DATA));
       await c.saveCollection('ad_campaigns', await cloudifyCampaigns(c.collections.ad_campaigns));
       await c.saveCollection('experience', c.collections.experience);
       await c.saveSetting('info', c.settings.info);
@@ -299,13 +286,7 @@ export const ContentAdmin: React.FC<{ tab: ContentTab }> = ({ tab }) => {
           blank={() => ({ id: uid('m'), value: '0', label: 'New metric' })}
           onSave={(items) => c.saveSetting('hero_metrics', items)} />
       )}
-      {tab === 'Projects' && (
-        <RecordsEditor<ProjectItem> title="My Own Projects" visibleKey="visible"
-          description="Websites and products you built yourself. Client advertising work belongs under Advertising."
-          items={c.collections.projects} fields={PROJECT_FIELDS} titleKey="title" addLabel="Add project" emptyText="No projects yet. Add your first one."
-          blank={() => ({ id: uid('proj'), title: 'New project', client: '', category: '', role: '', shortDesc: '', fullDesc: '', heroImage: '', liveUrl: '', sourceUrl: '', year: String(new Date().getFullYear()), tags: [], metrics: '', visible: true })}
-          onSave={(items) => c.saveCollection('projects', items)} />
-      )}
+      {tab === 'Projects' && <ProjectsAdmin />}
       {tab === 'Advertising' && (
         <RecordsEditor<AdCampaignItem> title="Advertising work" visibleKey="visible"
           description="Work done for companies and clients: SEO, Google Ads, Meta Ads, social media, reports…"

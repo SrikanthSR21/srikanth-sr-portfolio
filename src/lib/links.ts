@@ -28,3 +28,18 @@ export type FramePartId = (typeof FRAME_PARTS)[number]['id'];
 
 export const parseHidden = (raw: string | undefined): Set<string> =>
   new Set((raw ?? '').split(',').map((s) => s.trim()).filter(Boolean));
+
+/** Strict http(s)-only URL check for project links. Returns the normalised URL, or '' when it is empty / not allowed.
+ *  "example.com" becomes "https://example.com"; javascript:, data:, mailto:, ftp: … are all refused. */
+export function httpUrl(raw: string | undefined | null): string {
+  const v = (raw ?? '').trim();
+  if (!v || /\s/.test(v)) return '';
+  const hasScheme = /^[a-z][a-z0-9+.-]*:/i.test(v) && !/^[^/?#]*:\d+(\/|$)/.test(v); // "localhost:3000" is a host:port, not a scheme
+  if (hasScheme && !/^https?:\/\//i.test(v)) return '';
+  try {
+    const u = new URL(/^https?:\/\//i.test(v) ? v : `https://${v}`);
+    if (u.protocol !== 'https:' && u.protocol !== 'http:') return '';
+    if (!u.hostname.includes('.') && u.hostname !== 'localhost') return '';
+    return u.href;
+  } catch { return ''; }
+}

@@ -123,7 +123,8 @@ function buildSettings(rows: ContentRow[]): Settings {
 }
 function buildCollections(s: Snapshot | null): Collections {
   return {
-    projects: s?.projects?.length ? s.projects : PROJECTS_DATA,
+    // A saved snapshot is authoritative (even when empty) so deleting every project does not bring the built-in samples back
+    projects: s ? (s.projects ?? []) : PROJECTS_DATA,
     ad_campaigns: s?.ad_campaigns?.length ? s.ad_campaigns : AD_CAMPAIGNS_DATA,
     experience: s?.experience?.length ? s.experience : WORK_EXPERIENCE_DATA,
   };
@@ -169,12 +170,13 @@ export const ContentProvider: React.FC<{ children: React.ReactNode; /** false on
       const p = data<ProjectItem>(projects as any), a = data<AdCampaignItem>(campaigns as any), e = data<ExperienceItem>(experience as any);
       // undefined = that request failed (keep what we have); null = table empty / not seeded yet (built-in defaults)
       setCollections((prev) => ({
-        projects: p === undefined ? prev.projects : p ?? PROJECTS_DATA,
+        // Backend is connected: an empty table means the admin deleted everything, so show nothing (never resurrect samples)
+        projects: p === undefined ? prev.projects : p ?? [],
         ad_campaigns: a === undefined ? prev.ad_campaigns : a ?? AD_CAMPAIGNS_DATA,
         experience: e === undefined ? prev.experience : e ?? WORK_EXPERIENCE_DATA,
       }));
       if (useCache && p !== undefined && a !== undefined && e !== undefined) {
-        writeSnapshot({ v: 1, content: rows, projects: p, ad_campaigns: a, experience: e });
+        writeSnapshot({ v: 1, content: rows, projects: p ?? [], ad_campaigns: a, experience: e });
       }
     } catch (e) {
       console.warn('Backend unreachable, keeping the content already on screen', e);

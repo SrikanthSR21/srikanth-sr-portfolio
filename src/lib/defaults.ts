@@ -111,7 +111,7 @@ export const DEFAULT_TEXTS: Record<string, string> = {
 
   'projects.eyebrow': '02 // WEBSITES & PRODUCTS I HAVE BUILT',
   'projects.title': 'MY OWN PROJECTS',
-  'projects.subtitle': 'LIVE CARD GALLERY · VIBRANT FULL-COLOR HERO PREVIEWS ON MATTE BLACK',
+  'projects.subtitle': 'LIVE WEBSITES · OPEN ANY PROJECT IN A NEW TAB',
   'projects.viewSite': 'VIEW SITE',
   'projects.sourceCode': 'Source code',
 
