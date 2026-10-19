@@ -45,7 +45,7 @@ export const ProjectPortfolio: React.FC<ProjectPortfolioProps> = ({
                   {host && <span className="truncate min-w-0">{host}</span>}
                 </div>
 
-                <h3 className={`card-heading min-w-0 break-words text-lg sm:text-xl font-bold text-white uppercase tracking-tight ${fontPair.headlineClass}`}>
+                <h3 className={`card-heading min-w-0 break-words text-lg font-semibold text-white uppercase tracking-tight ${fontPair.headlineClass}`}>
                   {project.title}
                 </h3>
 
