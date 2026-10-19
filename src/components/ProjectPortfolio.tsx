@@ -22,11 +22,26 @@ const checkEmbeddable = (url: string) => {
 };
 
 const LOAD_TIMEOUT_MS = 15000;
+/** The site is rendered at this width (a normal desktop layout) and scaled down to fit the card. */
+const DESKTOP_WIDTH = 1280;
+const PREVIEW_HEIGHT = 300;
 
 /** Live, scrollable website inside the card. Starts loading only when the card nears the viewport. */
 const SitePreview: React.FC<{ url: string; title: string; host: string }> = ({ url, title, host }) => {
   const box = useRef<HTMLDivElement>(null);
   const [state, setState] = useState<PreviewState>('idle');
+  const [scale, setScale] = useState(0.3);
+
+  // Keep the desktop-width page fitted to the card's current width (responsive on resize / rotation).
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const fit = () => setScale(Math.min(1, el.clientWidth / DESKTOP_WIDTH) || 0.3);
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   useEffect(() => {
     setState('idle');
@@ -61,7 +76,8 @@ const SitePreview: React.FC<{ url: string; title: string; host: string }> = ({ u
   return (
     <div
       ref={box}
-      className="relative h-[280px] sm:h-[300px] overflow-hidden rounded-xl border border-white/15 bg-zinc-950"
+      style={{ height: PREVIEW_HEIGHT }}
+      className="relative overflow-hidden rounded-xl border border-white/15 bg-zinc-950"
       aria-busy={state === 'checking' || state === 'loading'}
     >
       {showFrame && (
@@ -73,7 +89,8 @@ const SitePreview: React.FC<{ url: string; title: string; host: string }> = ({ u
           referrerPolicy="strict-origin-when-cross-origin"
           onLoad={() => setState('ready')}
           onError={() => setState('unreachable')}
-          className={`absolute inset-0 h-full w-full border-0 bg-white transition-opacity duration-500 ${state === 'ready' ? 'opacity-100' : 'opacity-0'}`}
+          style={{ width: DESKTOP_WIDTH, height: PREVIEW_HEIGHT / scale, transform: `scale(${scale})`, transformOrigin: 'top left' }}
+          className={`absolute left-0 top-0 max-w-none border-0 bg-white transition-opacity duration-500 ${state === 'ready' ? 'opacity-100' : 'opacity-0'}`}
         />
       )}
       {(state === 'idle' || state === 'checking' || state === 'loading') && (
@@ -151,7 +168,7 @@ export const ProjectPortfolio: React.FC<ProjectPortfolioProps> = ({
                   {url ? (
                     <SitePreview url={url} title={project.title} host={host} />
                   ) : (
-                    <div className="flex h-[280px] sm:h-[300px] items-center justify-center rounded-xl border border-dashed border-white/15 px-6 text-center text-xs text-zinc-500">
+                    <div className="flex h-[300px] items-center justify-center rounded-xl border border-dashed border-white/15 px-6 text-center text-xs text-zinc-500">
                       {project.liveUrl?.trim() ? 'This project has an invalid website address.' : 'No website address has been added for this project yet.'}
                     </div>
                   )}
