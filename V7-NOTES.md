@@ -29,3 +29,8 @@ Existing saved layouts and navbars get the new sections / links inserted next to
 ## Changed files
 `src/types/index.ts`, `src/context/ContentContext.tsx`, `src/App.tsx`, `src/pages/AdminPage.tsx`, `src/lib/sections.ts`, `src/lib/defaults.ts`,
 `src/lib/typography.ts`, `src/lib/media.ts`, `src/components/admin/{LayoutAdmin,DashboardAdmin,MediaLibrary}.tsx`
+
+## CV download
+Every "Download CV / Resume" button (navbar, hero, about, footer) now downloads the uploaded CV directly instead of opening it in a new tab.
+File name: `<real name>_Resume.pdf`. Files in your Supabase storage download via `?download=` (works everywhere); other links are fetched and saved.
+With no uploaded CV the built-in printable CV still opens as before. Code: `src/lib/download.ts`, `src/App.tsx`.

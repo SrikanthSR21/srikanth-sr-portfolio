@@ -6,6 +6,7 @@ import { useMediaQuery } from './lib/hooks';
 import { SectionId } from './lib/sections';
 import { applyTypography } from './lib/typography';
 import { publicProfiles, publicReels } from './lib/social';
+import { downloadFile, resumeFileName } from './lib/download';
 
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
@@ -36,8 +37,12 @@ export default function App() {
 
   // If a CV file was uploaded in /admin, open it; otherwise show the built-in printable CV.
   const openResume = () => {
-    if (portfolioInfo.resumeUrl) window.open(portfolioInfo.resumeUrl, '_blank', 'noopener,noreferrer');
-    else setResumeModalOpen(true);
+    const url = portfolioInfo.resumeUrl?.trim();
+    if (!url) { setResumeModalOpen(true); return; }
+    // Download straight away (no new tab). If the download cannot even start, open the file instead so the visitor still gets it.
+    downloadFile(url, resumeFileName(portfolioInfo.realName || portfolioInfo.personaName, url)).then((ok) => {
+      if (!ok) window.open(url, '_blank', 'noopener,noreferrer');
+    });
   };
 
   // First-visit guard: with a backend configured and no saved copy of the content yet, show a neutral splash instead of
