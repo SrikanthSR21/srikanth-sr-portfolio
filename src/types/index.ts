@@ -123,3 +123,40 @@ export interface PortfolioInfo {
   }[];
   certifications: string[];
 }
+
+export type SocialPlatform = 'instagram' | 'linkedin' | 'facebook' | 'youtube' | 'x' | 'other';
+
+/** A social account you manage / have managed (Admin → Managed Profiles). Stored in site_content under the key `social_profiles`. */
+export interface SocialProfile {
+  id: string;
+  platform: SocialPlatform;
+  /** Account / brand name shown on the card */
+  name: string;
+  /** @handle, stored without the leading @ */
+  handle: string;
+  url: string;
+  /** Optional avatar / logo (https URL). Empty = platform icon. */
+  image: string;
+  /** Client type / niche, e.g. "Fashion · E-commerce" */
+  niche: string;
+  /** What you did for the account, e.g. "Content + Meta Ads" */
+  role: string;
+  /** Free text so "12.4K" or "8,200" both work. Entered by you, never fetched. */
+  followers: string;
+  growth: string;
+  /** YYYY-MM-DD: when followers / growth were last checked. Shown on the site as "as of …". */
+  asOf: string;
+  /** false = hidden on the public site (content is kept). Missing = visible. */
+  visible?: boolean;
+}
+
+/** An Instagram reel / post shown in the Reels section (Admin → Instagram Reels). Stored under the key `reels`. */
+export interface ReelItem {
+  id: string;
+  /** instagram.com/reel/CODE/ (or /p/CODE/, /tv/CODE/) */
+  url: string;
+  caption: string;
+  /** Optional cover image (https URL). Without it the card shows a plain Instagram tile. */
+  cover: string;
+  visible?: boolean;
+}

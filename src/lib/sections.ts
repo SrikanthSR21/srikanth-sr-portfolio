@@ -2,7 +2,7 @@
 // The public page renders whatever order/visibility is saved in site_content.layout,
 // but only ids listed here are ever rendered, so stored data can never inject arbitrary code.
 
-export type SectionId = 'hero' | 'about' | 'skills' | 'projects' | 'advertising' | 'branding' | 'contact' | 'footer';
+export type SectionId = 'hero' | 'about' | 'skills' | 'projects' | 'advertising' | 'profiles' | 'reels' | 'branding' | 'contact' | 'footer';
 
 export interface SectionConfig {
   id: SectionId;
@@ -74,6 +74,30 @@ export const SECTION_REGISTRY: Record<SectionId, SectionMeta> = {
     ],
     anchors: ['advertising'],
   },
+  profiles: {
+    defaultLabel: 'Managed Profiles',
+    description: 'Social accounts you have managed (Instagram, LinkedIn…). Hidden automatically while there are no visible profiles (Admin → Managed Profiles).',
+    textFields: [
+      { key: 'profiles.eyebrow', label: 'Eyebrow' },
+      { key: 'profiles.title', label: 'Title' },
+      { key: 'profiles.subtitle', label: 'Subtitle', multiline: true },
+      { key: 'profiles.viewProfile', label: 'Card button' },
+      { key: 'profiles.all', label: 'Filter chip for everything' },
+    ],
+    anchors: ['profiles'],
+  },
+  reels: {
+    defaultLabel: 'Instagram Reels',
+    description: 'Reels that play on your site. Hidden automatically while there are no visible reels (Admin → Instagram Reels).',
+    textFields: [
+      { key: 'reels.eyebrow', label: 'Eyebrow' },
+      { key: 'reels.title', label: 'Title' },
+      { key: 'reels.subtitle', label: 'Subtitle', multiline: true },
+      { key: 'reels.watch', label: 'Play label on each card' },
+      { key: 'reels.openIg', label: 'Link under the player' },
+    ],
+    anchors: ['reels'],
+  },
   branding: {
     defaultLabel: 'Branding & Work Experience',
     description: 'Brand ticker, in-house ventures frame and work-history timeline.',
@@ -115,7 +139,7 @@ export const SECTION_REGISTRY: Record<SectionId, SectionMeta> = {
 export const SECTION_IDS = Object.keys(SECTION_REGISTRY) as SectionId[];
 
 export const DEFAULT_LAYOUT: SectionConfig[] = [
-  'hero', 'about', 'skills', 'projects', 'advertising', 'branding', 'contact', 'footer',
+  'hero', 'about', 'skills', 'projects', 'advertising', 'profiles', 'reels', 'branding', 'contact', 'footer',
 ].map((id) => ({ id: id as SectionId, label: SECTION_REGISTRY[id as SectionId].defaultLabel, visible: true }));
 
 /** Accepts anything read from the database and returns a safe, complete layout:

@@ -45,7 +45,7 @@ export interface CustomBand { dark: string; light: string }
 export type SectionCustom = Partial<Record<SectionId, CustomBand>>;
 export type SectionTones = Partial<Record<SectionId, Tone>>;
 /** Shipped by default: black hero, then grey / black / white bands so the sections are easy to tell apart. */
-export const DEFAULT_SECTION_TONES: SectionTones = { hero: 'none', about: 'mid', skills: 'none', projects: 'soft', advertising: 'inverse', branding: 'none', contact: 'mid', footer: 'none' };
+export const DEFAULT_SECTION_TONES: SectionTones = { hero: 'none', about: 'mid', skills: 'none', projects: 'soft', advertising: 'inverse', profiles: 'none', reels: 'soft', branding: 'none', contact: 'mid', footer: 'none' };
 export const TONE_PRESETS: { name: string; hint: string; tones: SectionTones }[] = [
   { name: 'Black · Grey · White', hint: 'Recommended: all three bands', tones: DEFAULT_SECTION_TONES },
   { name: 'Subtle bands', hint: 'Alternating black and charcoal', tones: { hero: 'none', about: 'soft', skills: 'none', projects: 'soft', advertising: 'none', branding: 'soft', contact: 'none', footer: 'none' } },

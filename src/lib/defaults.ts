@@ -45,22 +45,31 @@ export const DEFAULT_NAV: NavItem[] = [
   { id: 'n-skills', label: 'Skills',  href: '#skills',      kind: 'link',   visible: true },
   { id: 'n3', label: 'Projects',    href: '#projects',    kind: 'link',   visible: true },
   { id: 'n4', label: 'Advertising', href: '#advertising', kind: 'link',   visible: true },
+  { id: 'n-profiles', label: 'Profiles', href: '#profiles', kind: 'link', visible: true },
+  { id: 'n-reels', label: 'Reels',       href: '#reels',       kind: 'link',   visible: true },
   { id: 'n5', label: 'Experience',  href: '#experience',  kind: 'link',   visible: true },
   { id: 'n6', label: 'Branding',    href: '#branding',    kind: 'link',   visible: true },
   { id: 'n7', label: 'Contact',     href: '#contact',     kind: 'link',   visible: true },
   { id: 'n8', label: 'Resume (Download)', href: '', kind: 'resume', visible: true },
 ];
 
-/** Saved navigation from before V4 has no Skills link: add it right after About (read-time only; the database is not touched).
- *  To remove it, use the Visible switch in Admin → Navbar Links. */
+/** Saved navigation from before a section existed lacks its link: add it next to its neighbour (read-time only; the database is not touched).
+ *  Skills (V4) goes after About; Profiles and Reels (V7) go after Advertising. To remove one, use the Visible switch in Admin → Navbar Links. */
+const ADDED_LINKS: { id: string; href: string; after: string }[] = [
+  { id: 'n-skills', href: '#skills', after: '#about' },
+  { id: 'n-profiles', href: '#profiles', after: '#advertising' },
+  { id: 'n-reels', href: '#reels', after: '#profiles' },
+];
 export function normalizeNav(raw: unknown): NavItem[] {
   if (!Array.isArray(raw)) return DEFAULT_NAV;
-  const nav = raw as NavItem[];
-  if (nav.some((n) => n?.href === '#skills' || n?.id === 'n-skills')) return nav;
-  const at = nav.findIndex((n) => n?.href === '#about');
-  const item = DEFAULT_NAV.find((n) => n.id === 'n-skills')!;
-  const out = [...nav];
-  out.splice(at >= 0 ? at + 1 : Math.min(2, out.length), 0, { ...item });
+  let out = (raw as NavItem[]).filter((n) => n && typeof n === 'object');
+  for (const add of ADDED_LINKS) {
+    if (out.some((n) => n.href === add.href || n.id === add.id)) continue;
+    const item = { ...DEFAULT_NAV.find((n) => n.id === add.id)! };
+    let at = out.findIndex((n) => n.href === add.after);
+    if (at < 0) at = add.id === 'n-skills' ? Math.min(1, out.length - 1) : Math.max(0, out.findIndex((n) => n.href === '#contact') - 1);
+    out = [...out.slice(0, at + 1), item, ...out.slice(at + 1)];
+  }
   return out;
 }
 
@@ -118,6 +127,18 @@ export const DEFAULT_TEXTS: Record<string, string> = {
   'ads.eyebrow': '03 // PAID MEDIA, ROAS & SEARCH ENGINE AUDITS',
   'ads.title': 'ADVERTISING PORTFOLIO',
   'ads.subtitle': '',
+
+  'profiles.eyebrow': '// SOCIAL MEDIA MANAGEMENT',
+  'profiles.title': 'PROFILES I HAVE MANAGED',
+  'profiles.subtitle': 'REAL ACCOUNTS · OPEN ANY PROFILE IN A NEW TAB',
+  'profiles.viewProfile': 'VIEW PROFILE',
+  'profiles.all': 'All',
+
+  'reels.eyebrow': '// INSTAGRAM REELS',
+  'reels.title': 'INSTAGRAM REELS',
+  'reels.subtitle': 'TAP A REEL TO WATCH IT HERE',
+  'reels.watch': 'WATCH REEL',
+  'reels.openIg': 'Open on Instagram',
 
   'branding.eyebrow': '04 // BRANDING & PRODUCTION TIMELINE',
   'branding.title': 'BRANDING & WORK EXPERIENCE',

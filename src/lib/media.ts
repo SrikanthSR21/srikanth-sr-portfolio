@@ -7,7 +7,7 @@
 
 import { supabase, BUCKET } from './supabase';
 
-export type MediaCategory = 'profile' | 'project' | 'advertising' | 'logo' | 'experience' | 'skill' | 'document' | 'other';
+export type MediaCategory = 'profile' | 'project' | 'advertising' | 'logo' | 'experience' | 'skill' | 'social' | 'document' | 'other';
 export const MEDIA_CATEGORIES: { id: MediaCategory; label: string; folder: string }[] = [
   { id: 'profile', label: 'Profile images', folder: 'profile' },
   { id: 'project', label: 'Project images', folder: 'projects' },
@@ -15,6 +15,7 @@ export const MEDIA_CATEGORIES: { id: MediaCategory; label: string; folder: strin
   { id: 'logo', label: 'Company logos', folder: 'logos' },
   { id: 'experience', label: 'Work experience', folder: 'experience' },
   { id: 'skill', label: 'Skill icons', folder: 'skills' },
+  { id: 'social', label: 'Social profiles & reels', folder: 'social' },
   { id: 'document', label: 'Documents (CV)', folder: 'resume' },
   { id: 'other', label: 'Other media', folder: 'misc' },
 ];
@@ -326,10 +327,10 @@ export const assetKey = (a: MediaAsset) => (a.source === 'upload' && a.storagePa
 
 const AREA_NAMES: Record<string, string> = {
   info: 'Profile & contact', images: 'About portrait', skills: 'Skills', theme: 'Theme', clients: 'Brand ticker', nav: 'Navigation', texts: 'Texts',
-  projects: 'Project', ad_campaigns: 'Advertising campaign', experience: 'Work experience',
+  social_profiles: 'Managed profile', reels: 'Instagram reel', projects: 'Project', ad_campaigns: 'Advertising campaign', experience: 'Work experience',
 };
 const FIELD_NAMES: Record<string, string> = {
-  heroImage: 'preview image', screenshotImage: 'screenshot', image: 'image', logo: 'logo', 'branding.frameLogo': 'CYBERBIX emblem', profile: 'portrait', resumeUrl: 'CV file', icon: 'icon',
+  heroImage: 'preview image', screenshotImage: 'screenshot', image: 'image', logo: 'logo', cover: 'reel cover', 'branding.frameLogo': 'CYBERBIX emblem', profile: 'portrait', resumeUrl: 'CV file', icon: 'icon',
 };
 
 export type ContentSnapshot = Record<string, unknown>; // e.g. { info, images, skills, projects, ad_campaigns, experience, … }

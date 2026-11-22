@@ -11,7 +11,8 @@ import { DEFAULT_LAYOUT, normalizeLayout, SectionConfig } from '../lib/sections'
 import {
   AD_CAMPAIGNS_DATA, CLIENT_LOGOS, INITIAL_PORTFOLIO_INFO, PROJECTS_DATA, WORK_EXPERIENCE_DATA,
 } from '../data/portfolioData';
-import { AdCampaignItem, ExperienceItem, PortfolioInfo, ProjectItem, ThemeSettings, TicketItem } from '../types';
+import { normalizeProfiles, normalizeReels } from '../lib/social';
+import { AdCampaignItem, ExperienceItem, PortfolioInfo, ProjectItem, ReelItem, SocialProfile, ThemeSettings, TicketItem } from '../types';
 
 type Settings = {
   info: PortfolioInfo;
@@ -29,6 +30,10 @@ type Settings = {
   skills: SkillsConfig;
   /** Heading / highlight / radius styling */
   typography: TypographySettings;
+  /** Social accounts you have managed (Admin → Managed Profiles). Empty = section hidden on the site. */
+  social_profiles: SocialProfile[];
+  /** Instagram reels (Admin → Instagram Reels). No visible reel = section and nav link hidden. */
+  reels: ReelItem[];
 };
 type Collections = {
   projects: ProjectItem[];
@@ -50,6 +55,8 @@ const DEFAULT_SETTINGS: Settings = {
   enquiry_types: DEFAULT_ENQUIRY_TYPES,
   skills: deriveSkillsFromInfo(INITIAL_PORTFOLIO_INFO.skills),
   typography: DEFAULT_TYPOGRAPHY,
+  social_profiles: [],
+  reels: [],
 };
 const DEFAULT_COLLECTIONS: Collections = {
   projects: PROJECTS_DATA,
@@ -113,6 +120,8 @@ function buildSettings(rows: ContentRow[]): Settings {
     else if (row.key === 'nav') next.nav = normalizeNav(row.value);
     else if (row.key === 'skills') skillsRow = row.value;
     else if (row.key === 'typography') next.typography = normalizeTypography(row.value);
+    else if (row.key === 'social_profiles') next.social_profiles = normalizeProfiles(row.value);
+    else if (row.key === 'reels') next.reels = normalizeReels(row.value);
     else if (row.key === 'enquiry_types') {
       next.enquiry_types = Array.isArray(row.value) ? row.value.filter((v: unknown) => typeof v === 'string' && v.trim()).map((v: string) => v.trim().slice(0, 80)) : [];
     }

@@ -141,6 +141,8 @@ export const LayoutAdmin: React.FC<Props> = ({ onNavigate }) => {
                   {s.id === 'skills' && <button type="button" onClick={() => onNavigate('skills')} className="self-start text-xs text-white underline underline-offset-4 cursor-pointer">Manage skills →</button>}
                   {s.id === 'projects' && <button type="button" onClick={() => onNavigate('Projects')} className="self-start text-xs text-white underline underline-offset-4 cursor-pointer">Manage My Own Projects →</button>}
                   {s.id === 'advertising' && <button type="button" onClick={() => onNavigate('Advertising')} className="self-start text-xs text-white underline underline-offset-4 cursor-pointer">Manage Advertising work →</button>}
+                  {s.id === 'profiles' && <button type="button" onClick={() => onNavigate('social-profiles')} className="self-start text-xs text-white underline underline-offset-4 cursor-pointer">Manage profiles →</button>}
+                  {s.id === 'reels' && <button type="button" onClick={() => onNavigate('reels')} className="self-start text-xs text-white underline underline-offset-4 cursor-pointer">Manage reels →</button>}
                   {s.id === 'contact' && <button type="button" onClick={() => onNavigate('Contact form')} className="self-start text-xs text-white underline underline-offset-4 cursor-pointer">Edit enquiry-type suggestions →</button>}
                 </div>
               )}

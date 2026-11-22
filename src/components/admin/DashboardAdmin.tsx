@@ -4,6 +4,7 @@ import { useContent } from '../../context/ContentContext';
 import { supabase } from '../../lib/supabase';
 import { isTableMissing } from '../../lib/media';
 import { visibleSkillGroups } from '../../lib/skills';
+import { publicProfiles, publicReels } from '../../lib/social';
 
 export const DashboardAdmin: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate }) => {
   const { settings, collections, tickets, session, backendConnected } = useContent();
@@ -18,6 +19,8 @@ export const DashboardAdmin: React.FC<{ onNavigate: (page: string) => void }> = 
   const stats: [string, number, string][] = [
     ['Projects', collections.projects.filter((p) => p.visible !== false).length, 'Projects'],
     ['Advertising work', collections.ad_campaigns.filter((p) => p.visible !== false).length, 'Advertising'],
+    ['Managed profiles', publicProfiles(settings.social_profiles).length, 'social-profiles'],
+    ['Instagram reels', publicReels(settings.reels).length, 'reels'],
     ['Work experience', collections.experience.length, 'Experience'],
     ['Skills', skillsN, 'skills'],
     ['New messages', tickets.filter((t) => t.status === 'New').length, 'inbox'],
@@ -28,7 +31,7 @@ export const DashboardAdmin: React.FC<{ onNavigate: (page: string) => void }> = 
   return (
     <div className="space-y-6">
       <p className="text-xs text-zinc-500">Signed in as <span className="text-zinc-300">{session?.user.email}</span>. Changes you save go live on the website immediately.</p>
-      <dl className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <dl className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {stats.map(([k, v, to]) => (
           <button key={k} type="button" onClick={() => onNavigate(to)} className="text-left p-4 rounded-xl bg-zinc-950 border border-white/10 hover:border-white/40 cursor-pointer">
             <dd className="text-2xl font-bold text-white tabular-nums">{v}</dd><dt className="text-[11px] text-zinc-500 uppercase tracking-wider mt-0.5">{k}</dt>

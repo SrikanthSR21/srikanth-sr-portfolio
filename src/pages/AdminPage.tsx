@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ExternalLink, Inbox, Key, Layers, Lock, LogOut, Menu, Palette, User, X, Image as ImageIcon, Navigation, Type, BarChart3, Megaphone, Briefcase, Tags, Mail, Wrench, FolderKanban, LayoutDashboard, Sparkles, Images, HardDrive, Heading, Phone, Brush } from 'lucide-react';
+import { ExternalLink, Inbox, Key, Layers, Lock, LogOut, Menu, Palette, User, X, Image as ImageIcon, Navigation, Type, BarChart3, Megaphone, Briefcase, Tags, Mail, Wrench, FolderKanban, LayoutDashboard, Sparkles, Images, HardDrive, Heading, Phone, Brush, Users, Film } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 import { AppearanceAdmin } from '../components/admin/AppearanceAdmin';
 import { ContentAdmin } from '../components/admin/ContentAdmin';
@@ -8,6 +8,8 @@ import { InboxAdmin } from '../components/admin/InboxAdmin';
 import { LayoutAdmin } from '../components/admin/LayoutAdmin';
 import { DashboardAdmin } from '../components/admin/DashboardAdmin';
 import { SkillsAdmin } from '../components/admin/SkillsAdmin';
+import { SocialProfilesAdmin } from '../components/admin/SocialProfilesAdmin';
+import { ReelsAdmin } from '../components/admin/ReelsAdmin';
 import { HeadingsAdmin } from '../components/admin/HeadingsAdmin';
 import { TypographyAdmin } from '../components/admin/TypographyAdmin';
 import { MediaLibraryAdmin } from '../components/admin/MediaLibrary';
@@ -68,6 +70,8 @@ const GROUPS: { title: string; items: NavEntry[] }[] = [
     { id: 'skills', label: 'Skills', icon: Sparkles, hint: 'Categories, skills, icons, levels and display style' },
     { id: 'Projects', label: 'Projects', icon: FolderKanban, hint: 'Websites and products you built' },
     { id: 'Advertising', label: 'Advertising Campaigns', icon: Megaphone, hint: 'Work for companies and clients' },
+    { id: 'social-profiles', label: 'Managed Profiles', icon: Users, hint: 'Instagram, LinkedIn and other accounts you have managed, with optional follower numbers' },
+    { id: 'reels', label: 'Instagram Reels', icon: Film, hint: 'Reels that play on your site. The section hides itself when there are none' },
     { id: 'Experience', label: 'Work Experience', icon: Briefcase, hint: 'Work-history timeline, with optional company / work images' },
     { id: 'Brands', label: 'Brand Ticker', icon: Tags, hint: 'Scrolling brand names' },
     { id: 'Hero stats', label: 'Hero Metrics', icon: BarChart3, hint: 'Numbers under the hero buttons' },
@@ -214,6 +218,8 @@ export default function AdminPage() {
                   {page === 'typography' && <TypographyAdmin />}
                   {page === 'headings' && <HeadingsAdmin />}
                   {page === 'skills' && <SkillsAdmin />}
+                  {page === 'social-profiles' && <SocialProfilesAdmin />}
+                  {page === 'reels' && <ReelsAdmin />}
                   {page === 'media' && <MediaLibraryAdmin />}
                   {page === 'storage' && <StorageAdmin />}
                   {page === 'profile' && <ProfileAdmin view="profile" />}

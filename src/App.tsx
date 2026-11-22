@@ -5,6 +5,7 @@ import { useColorMode } from './lib/colorMode';
 import { useMediaQuery } from './lib/hooks';
 import { SectionId } from './lib/sections';
 import { applyTypography } from './lib/typography';
+import { publicProfiles, publicReels } from './lib/social';
 
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
@@ -12,6 +13,8 @@ import { AboutSection } from './components/AboutSection';
 import { SkillsSection } from './components/SkillsSection';
 import { ProjectPortfolio } from './components/ProjectPortfolio';
 import { AdvertisingPortfolio } from './components/AdvertisingPortfolio';
+import { ProfilesSection } from './components/ProfilesSection';
+import { ReelsSection } from './components/ReelsSection';
 import { BrandingSection } from './components/BrandingSection';
 import { ContactSection } from './components/ContactSection';
 import { SiteFooter } from './components/SiteFooter';
@@ -69,7 +72,16 @@ export default function App() {
   }, [themeSettings, mode]);
 
   const layout = settings.layout;
-  const hiddenSections = useMemo(() => new Set<SectionId>(layout.filter((s) => !s.visible).map((s) => s.id)), [layout]);
+  // A section is "hidden" when you switched it off OR it has nothing to show (no visible, valid profile / reel). Hidden sections
+  // render nothing and their navbar / footer links disappear too, so there is never an empty heading or a dead link.
+  const hasProfiles = useMemo(() => publicProfiles(settings.social_profiles).length > 0, [settings.social_profiles]);
+  const hasReels = useMemo(() => publicReels(settings.reels).length > 0, [settings.reels]);
+  const hiddenSections = useMemo(() => {
+    const set = new Set<SectionId>(layout.filter((s) => !s.visible).map((s) => s.id));
+    if (!hasProfiles) set.add('profiles');
+    if (!hasReels) set.add('reels');
+    return set;
+  }, [layout, hasProfiles, hasReels]);
   const heroVisible = !hiddenSections.has('hero');
   const contactLinks = useMemo(() => buildContactLinks(portfolioInfo), [portfolioInfo]);
 
@@ -90,6 +102,8 @@ export default function App() {
     skills: () => <SkillsSection fontPair={currentFontPair} />,
     projects: () => <ProjectPortfolio projects={collections.projects} fontPair={currentFontPair} />,
     advertising: () => <AdvertisingPortfolio campaigns={collections.ad_campaigns} fontPair={currentFontPair} />,
+    profiles: () => <ProfilesSection profiles={settings.social_profiles} fontPair={currentFontPair} />,
+    reels: () => <ReelsSection reels={settings.reels} fontPair={currentFontPair} />,
     branding: () => <BrandingSection workExperience={collections.experience} fontPair={currentFontPair} />,
     contact: () => (
       <ContactSection
